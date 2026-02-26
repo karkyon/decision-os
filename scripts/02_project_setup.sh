@@ -76,12 +76,12 @@ JWT_EXPIRE_MINUTES=1440
 
 # ===== バックエンド =====
 BACKEND_HOST=0.0.0.0
-BACKEND_PORT=8000
+BACKEND_PORT=8089
 DEBUG=true
 
 # ===== フロントエンド =====
-VITE_API_BASE_URL=http://localhost:8000
-VITE_WS_URL=ws://localhost:8000/ws
+VITE_API_BASE_URL=http://localhost:8089
+VITE_WS_URL=ws://localhost:8089/ws
 
 # ===== AI補助判定（任意） =====
 AI_PROVIDER=none
@@ -181,7 +181,7 @@ services:
     container_name: decisionos_nginx
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "8888:80"
     volumes:
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
@@ -213,11 +213,11 @@ http {
   # ホストで動くサービスのupstream定義
   # host.docker.internal はLinuxでは使えないため、ホストIPを直接指定
   upstream frontend {
-    server ${HOST_IP}:3000;
+    server ${HOST_IP}:3008;
   }
 
   upstream backend {
-    server ${HOST_IP}:8000;
+    server ${HOST_IP}:8089;
   }
 
   # アクセスログのフォーマット
@@ -355,7 +355,7 @@ ps:
 be:
 	@cd backend && \
 	  source .venv/bin/activate && \
-	  uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+	  uvicorn app.main:app --host 0.0.0.0 --port 8089 --reload
 
 fe:
 	@cd frontend && npm run dev

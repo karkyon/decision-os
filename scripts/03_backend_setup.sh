@@ -101,7 +101,7 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = 1440
     debug: bool = False
     backend_host: str = "0.0.0.0"
-    backend_port: int = 8000
+    backend_port: int = 8089
     ai_provider: str = "none"
     ai_confidence_threshold: float = 0.75
 

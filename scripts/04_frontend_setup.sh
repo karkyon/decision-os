@@ -123,17 +123,17 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
+    port: 3008,
     host: '0.0.0.0',   // サーバーからアクセスできるようにバインド
     proxy: {
       // バックエンドAPIへのプロキシ
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:8089',
         changeOrigin: true,
       },
       // WebSocketへのプロキシ
       '/ws': {
-        target: 'ws://localhost:8000',
+        target: 'ws://localhost:8089',
         ws: true,
       },
     },

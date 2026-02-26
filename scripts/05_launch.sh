@@ -63,7 +63,7 @@ sleep 1
 # バックグラウンドで起動（ログをファイルに出力）
 nohup uvicorn app.main:app \
   --host 0.0.0.0 \
-  --port 8000 \
+  --port 8089 \
   --reload \
   > "$PROJECT_DIR/logs/backend.log" 2>&1 &
 
@@ -75,7 +75,7 @@ info "バックエンド PID: $BACKEND_PID"
 cd "$PROJECT_DIR"
 mkdir -p logs
 WAIT=0
-until curl -sf http://localhost:8000/health > /dev/null 2>&1; do
+until curl -sf http://localhost:8089/health > /dev/null 2>&1; do
   sleep 2
   WAIT=$((WAIT + 2))
   [[ $WAIT -ge 30 ]] && {
@@ -109,7 +109,7 @@ info "フロントエンド PID: $FRONTEND_PID"
 
 # 起動待機（最大30秒）
 WAIT=0
-until curl -sf http://localhost:3000 > /dev/null 2>&1; do
+until curl -sf http://localhost:3008 > /dev/null 2>&1; do
   sleep 2
   WAIT=$((WAIT + 2))
   [[ $WAIT -ge 30 ]] && {
@@ -136,10 +136,10 @@ check() {
   fi
 }
 
-check "バックエンド ヘルスチェック" "http://localhost:8000/health"
-check "バックエンド API"            "http://localhost:8000/api/v1/ping"
-check "フロントエンド"              "http://localhost:3000"
-check "nginx（ポート80）"           "http://localhost:80"
+check "バックエンド ヘルスチェック" "http://localhost:8089/health"
+check "バックエンド API"            "http://localhost:8089/api/v1/ping"
+check "フロントエンド"              "http://localhost:3008"
+check "nginx（ポート80）"           "http://localhost:8888"
 
 # ---------- 完了メッセージ ----------
 section "起動完了"
@@ -151,15 +151,15 @@ echo "  ╔═══════════════════════
 echo "  ║       decision-os 起動完了             ║"
 echo "  ╠════════════════════════════════════════╣"
 echo "  ║  フロントエンド:                        ║"
-echo "  ║    http://localhost:3000               ║"
-echo "  ║    http://${SERVER_IP}:3000             ║"
+echo "  ║    http://localhost:3008               ║"
+echo "  ║    http://${SERVER_IP}:3008             ║"
 echo "  ║                                        ║"
 echo "  ║  バックエンドAPI:                       ║"
-echo "  ║    http://localhost:8000/health        ║"
-echo "  ║    http://localhost:8000/docs  ← Swagger ║"
+echo "  ║    http://localhost:8089/health        ║"
+echo "  ║    http://localhost:8089/docs  ← Swagger ║"
 echo "  ║                                        ║"
 echo "  ║  nginx（統合）:                         ║"
-echo "  ║    http://localhost:80                 ║"
+echo "  ║    http://localhost:8888                 ║"
 echo "  ╚════════════════════════════════════════╝"
 echo -e "${RESET}"
 

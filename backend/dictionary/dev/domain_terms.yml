@@ -1,0 +1,8 @@
+entries:
+  - { term: "API",         domain: "BACKEND" }
+  - { term: "画面",        domain: "UI" }
+  - { term: "DB",          domain: "DATABASE" }
+  - { term: "SQL",         domain: "DATABASE" }
+  - { term: "ログイン",    domain: "AUTH" }
+  - { term: "デプロイ",    domain: "INFRA" }
+  - { term: "レイテンシ",  domain: "PERF" }

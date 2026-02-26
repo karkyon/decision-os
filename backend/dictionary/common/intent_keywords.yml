@@ -1,0 +1,11 @@
+entries:
+  - { term: "エラー",       intent_hint: "BUG", priority: 5 }
+  - { term: "動かない",     intent_hint: "BUG", priority: 5 }
+  - { term: "落ちる",       intent_hint: "BUG", priority: 5 }
+  - { term: "不具合",       intent_hint: "BUG", priority: 5 }
+  - { term: "してほしい",   intent_hint: "REQ", priority: 4 }
+  - { term: "追加",         intent_hint: "REQ", priority: 3 }
+  - { term: "改善",         intent_hint: "IMP", priority: 3 }
+  - { term: "使いづらい",   intent_hint: "IMP", priority: 4 }
+  - { term: "？",           intent_hint: "QST", priority: 4 }
+  - { term: "でしょうか",   intent_hint: "QST", priority: 4 }
