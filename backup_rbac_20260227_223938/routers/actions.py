@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional
-from ....core.deps import require_pm_or_above, require_dev_or_above, require_admin, get_db, get_current_user
+from ....core.deps import get_db, get_current_user
 from ....models.action import Action
 from ....models.item import Item
 from ....models.input import Input

@@ -9,6 +9,7 @@ import IssueDetail from "./pages/IssueDetail";
 import Search from './pages/Search';
 import Decisions from './pages/Decisions';
 import Labels from "./pages/Labels";
+import UserManagement from './pages/UserManagement';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   return authStore.isLoggedIn() ? <>{children}</> : <Navigate to="/login" replace />;
@@ -25,7 +26,8 @@ export default function App() {
         <Route path="/search" element={<Search />
         <Route path="/decisions" element={<Decisions />} />} /></PrivateRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
-      <Route path="/labels" element={<Labels />} />
+      <Route path="/labels" element={<Labels />
+        <Route path="/users" element={<UserManagement />} />} />
         </Routes>
       <NotificationToast />
   );

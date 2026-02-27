@@ -4,6 +4,7 @@ from .routers.dashboard import router as dashboard_router
 from .routers.conversations import router as conversations_router
 from .routers.search import router as search_router
 from .routers.decisions import router as decisions_router
+from .routers.users import router as users_router
 
 api_router = APIRouter()
 api_router.include_router(auth.router)
@@ -20,3 +21,4 @@ api_router.include_router(search_router)
 api_router.include_router(decisions_router)
 api_router.include_router(ws.router)
 api_router.include_router(labels.router)
+api_router.include_router(users_router)

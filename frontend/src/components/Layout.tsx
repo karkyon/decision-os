@@ -1,4 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { RoleBadge } from './RoleBadge';
+import { usePermission } from '../hooks/usePermission';
 import NotificationBell from "./NotificationBell";
 import { authStore } from "../store/auth";
 
@@ -8,7 +10,8 @@ const NAV = [
   { to: "/issues", label: "📋 課題一覧" },
 ];
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout({
+  const { role } = usePermission(); children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
   const user = authStore.getUser();

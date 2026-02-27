@@ -12,7 +12,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from app.db.session import get_db
-from ....core.deps import require_pm_or_above, require_dev_or_above, require_admin, get_current_user
+from ....core.deps import get_current_user
 from app.models.user import User
 
 router = APIRouter(prefix="/labels", tags=["labels"])

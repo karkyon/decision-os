@@ -15,7 +15,7 @@ from app.db.session import get_db
 from app.models.issue import Issue
 from app.models.action import Action
 from app.models.item import Item
-from ....core.deps import require_pm_or_above, require_dev_or_above, require_admin, get_db, get_current_user
+from ....core.deps import get_db, get_current_user
 from app.models.user import User
 from app.core.notifier import manager
 
