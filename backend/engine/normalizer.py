@@ -1,31 +1,39 @@
 """
-Normalizer: テキストの前処理・正規化
+Normalizer: テキスト前処理
+- 全角半角統一
+- 表記ゆれ修正
+- 改行・空白の正規化
 """
+import re
 import unicodedata
-import json
-import os
 
-# ライブ辞書を読み込む（起動時のみ）
-_LIVE_DICT_PATH = os.path.join(os.path.dirname(__file__), "../dictionary/live.json")
 
-def _load_live_dict() -> dict:
-    try:
-        with open(_LIVE_DICT_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return {}
-
-_REPLACE_MAP = {
-    "ログイン出来ない": "ログインできない",
-    "落ちちゃう": "落ちる",
-    "できませんか": "できるか",
-    "使えない": "使用できない",
-    **_load_live_dict(),
+REPLACE_MAP = {
+    "ｴﾗｰ": "エラー",
+    "ﾊﾞｸﾞ": "バグ",
+    "UI": "UI",
+    "ＵＩ": "UI",
+    "ＡＰＩ": "API",
+    "ＤＢ": "DB",
+    "ＵＲＬ": "URL",
 }
 
+
 def normalize(text: str) -> str:
-    """全角半角統一・表記ゆれ補正"""
+    if not text:
+        return ""
+
+    # Unicode NFKC正規化（全角→半角変換を含む）
     text = unicodedata.normalize("NFKC", text)
-    for src, dst in _REPLACE_MAP.items():
+
+    # カスタム表記ゆれ変換
+    for src, dst in REPLACE_MAP.items():
         text = text.replace(src, dst)
+
+    # 連続空白・タブを単一スペースに
+    text = re.sub(r"[ \t\u3000]+", " ", text)
+
+    # 3行以上の連続改行を2行に圧縮
+    text = re.sub(r"\n{3,}", "\n\n", text)
+
     return text.strip()
