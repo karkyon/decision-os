@@ -1,0 +1,711 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.3.2, pluggy-1.6.0 -- /home/karkyon/projects/decision-os/backend/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/karkyon/projects/decision-os/backend
+configfile: pytest.ini
+plugins: anyio-4.12.1, asyncio-0.23.8, timeout-2.4.0, cov-5.0.0
+asyncio: mode=Mode.AUTO
+collecting ... collected 16 items
+
+tests/test_auth.py::test_login_success FAILED                            [  6%]
+tests/test_auth.py::test_login_wrong_password FAILED                     [ 12%]
+tests/test_auth.py::test_no_token_rejected PASSED                        [ 18%]
+tests/test_engine.py::test_analyze_bug PASSED                            [ 25%]
+tests/test_engine.py::test_analyze_request PASSED                        [ 31%]
+tests/test_engine.py::test_analyze_question PASSED                       [ 37%]
+tests/test_engine.py::test_confidence_range PASSED                       [ 43%]
+tests/test_health.py::test_health PASSED                                 [ 50%]
+tests/test_health.py::test_ping PASSED                                   [ 56%]
+tests/test_issues.py::test_list_issues ERROR                             [ 62%]
+tests/test_issues.py::test_create_issue ERROR                            [ 68%]
+tests/test_issues.py::test_issue_type_change ERROR                       [ 75%]
+tests/test_issues.py::test_filter_issues ERROR                           [ 81%]
+tests/test_issues.py::test_rbac_users_endpoint ERROR                     [ 87%]
+tests/test_projects.py::test_list_projects ERROR                         [ 93%]
+tests/test_projects.py::test_create_project ERROR                        [100%]
+
+==================================== ERRORS ====================================
+______________________ ERROR at setup of test_list_issues ______________________
+file /home/karkyon/projects/decision-os/backend/tests/test_issues.py, line 12
+  @pytest.mark.asyncio
+  async def test_list_issues(client, auth_headers):
+      resp = await client.get("/api/v1/issues", headers=auth_headers)
+      assert resp.status_code == 200
+file /home/karkyon/projects/decision-os/backend/tests/conftest.py, line 33
+  @pytest.fixture(scope="module")
+  async def client():
+      async with AsyncClient(
+          transport=ASGITransport(app=app),
+          base_url="http://test"
+      ) as c:
+          yield c
+E       fixture 'tests/test_auth.py::<event_loop>' not found
+>       available fixtures: _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, auth_headers, auth_token, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, client, cov, doctest_namespace, event_loop, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, no_cover, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tests/test_issues.py::<event_loop>, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/karkyon/projects/decision-os/backend/tests/conftest.py:33
+_____________________ ERROR at setup of test_create_issue ______________________
+file /home/karkyon/projects/decision-os/backend/tests/test_issues.py, line 17
+  @pytest.mark.asyncio
+  async def test_create_issue(client, auth_headers):
+      pid = await get_or_create_project(client, auth_headers)
+      resp = await client.post("/api/v1/issues", headers=auth_headers,
+          json={"project_id": pid, "title": "pytest issue", "issue_type": "task", "status": "open"})
+      assert resp.status_code in (200, 201)
+      assert "id" in resp.json()
+file /home/karkyon/projects/decision-os/backend/tests/conftest.py, line 33
+  @pytest.fixture(scope="module")
+  async def client():
+      async with AsyncClient(
+          transport=ASGITransport(app=app),
+          base_url="http://test"
+      ) as c:
+          yield c
+E       fixture 'tests/test_auth.py::<event_loop>' not found
+>       available fixtures: _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, auth_headers, auth_token, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, client, cov, doctest_namespace, event_loop, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, no_cover, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tests/test_issues.py::<event_loop>, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/karkyon/projects/decision-os/backend/tests/conftest.py:33
+___________________ ERROR at setup of test_issue_type_change ___________________
+file /home/karkyon/projects/decision-os/backend/tests/test_issues.py, line 25
+  @pytest.mark.asyncio
+  async def test_issue_type_change(client, auth_headers):
+      pid = await get_or_create_project(client, auth_headers)
+      cr = await client.post("/api/v1/issues", headers=auth_headers,
+          json={"project_id": pid, "title": "type change test", "issue_type": "task", "status": "open"})
+      iid = cr.json().get("id", "")
+      if not iid:
+          pytest.skip("issue作成失敗")
+      r = await client.patch(f"/api/v1/issues/{iid}", headers=auth_headers,
+          json={"issue_type": "epic"})
+      assert r.status_code in (200, 204)
+file /home/karkyon/projects/decision-os/backend/tests/conftest.py, line 33
+  @pytest.fixture(scope="module")
+  async def client():
+      async with AsyncClient(
+          transport=ASGITransport(app=app),
+          base_url="http://test"
+      ) as c:
+          yield c
+E       fixture 'tests/test_auth.py::<event_loop>' not found
+>       available fixtures: _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, auth_headers, auth_token, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, client, cov, doctest_namespace, event_loop, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, no_cover, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tests/test_issues.py::<event_loop>, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/karkyon/projects/decision-os/backend/tests/conftest.py:33
+_____________________ ERROR at setup of test_filter_issues _____________________
+file /home/karkyon/projects/decision-os/backend/tests/test_issues.py, line 37
+  @pytest.mark.asyncio
+  async def test_filter_issues(client, auth_headers):
+      resp = await client.get("/api/v1/issues?status=open", headers=auth_headers)
+      assert resp.status_code == 200
+file /home/karkyon/projects/decision-os/backend/tests/conftest.py, line 33
+  @pytest.fixture(scope="module")
+  async def client():
+      async with AsyncClient(
+          transport=ASGITransport(app=app),
+          base_url="http://test"
+      ) as c:
+          yield c
+E       fixture 'tests/test_auth.py::<event_loop>' not found
+>       available fixtures: _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, auth_headers, auth_token, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, client, cov, doctest_namespace, event_loop, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, no_cover, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tests/test_issues.py::<event_loop>, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/karkyon/projects/decision-os/backend/tests/conftest.py:33
+__________________ ERROR at setup of test_rbac_users_endpoint __________________
+file /home/karkyon/projects/decision-os/backend/tests/test_issues.py, line 42
+  @pytest.mark.asyncio
+  async def test_rbac_users_endpoint(client, auth_headers):
+      resp = await client.get("/api/v1/users", headers=auth_headers)
+      # PMロールなので 403 が正常
+      assert resp.status_code in (200, 403)
+file /home/karkyon/projects/decision-os/backend/tests/conftest.py, line 33
+  @pytest.fixture(scope="module")
+  async def client():
+      async with AsyncClient(
+          transport=ASGITransport(app=app),
+          base_url="http://test"
+      ) as c:
+          yield c
+E       fixture 'tests/test_auth.py::<event_loop>' not found
+>       available fixtures: _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, auth_headers, auth_token, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, client, cov, doctest_namespace, event_loop, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, no_cover, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tests/test_issues.py::<event_loop>, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/karkyon/projects/decision-os/backend/tests/conftest.py:33
+_____________________ ERROR at setup of test_list_projects _____________________
+file /home/karkyon/projects/decision-os/backend/tests/test_projects.py, line 3
+  @pytest.mark.asyncio
+  async def test_list_projects(client, auth_headers):
+      resp = await client.get("/api/v1/projects", headers=auth_headers)
+      assert resp.status_code == 200
+file /home/karkyon/projects/decision-os/backend/tests/conftest.py, line 33
+  @pytest.fixture(scope="module")
+  async def client():
+      async with AsyncClient(
+          transport=ASGITransport(app=app),
+          base_url="http://test"
+      ) as c:
+          yield c
+E       fixture 'tests/test_auth.py::<event_loop>' not found
+>       available fixtures: _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, auth_headers, auth_token, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, client, cov, doctest_namespace, event_loop, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, no_cover, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tests/test_projects.py::<event_loop>, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/karkyon/projects/decision-os/backend/tests/conftest.py:33
+____________________ ERROR at setup of test_create_project _____________________
+file /home/karkyon/projects/decision-os/backend/tests/test_projects.py, line 8
+  @pytest.mark.asyncio
+  async def test_create_project(client, auth_headers):
+      resp = await client.post("/api/v1/projects",
+          headers=auth_headers,
+          json={"name": f"test_{int(time.time())}", "description": "pytest"})
+      assert resp.status_code in (200, 201)
+      assert "id" in resp.json()
+file /home/karkyon/projects/decision-os/backend/tests/conftest.py, line 33
+  @pytest.fixture(scope="module")
+  async def client():
+      async with AsyncClient(
+          transport=ASGITransport(app=app),
+          base_url="http://test"
+      ) as c:
+          yield c
+E       fixture 'tests/test_auth.py::<event_loop>' not found
+>       available fixtures: _session_event_loop, anyio_backend, anyio_backend_name, anyio_backend_options, auth_headers, auth_token, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, client, cov, doctest_namespace, event_loop, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, no_cover, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tests/test_projects.py::<event_loop>, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/karkyon/projects/decision-os/backend/tests/conftest.py:33
+=================================== FAILURES ===================================
+______________________________ test_login_success ______________________________
+
+self = <sqlalchemy.orm.relationships.JoinCondition object at 0x7e7310b6f3b0>
+
+    def _determine_joins(self) -> None:
+        """Determine the 'primaryjoin' and 'secondaryjoin' attributes,
+        if not passed to the constructor already.
+    
+        This is based on analysis of the foreign key relationships
+        between the parent and target mapped selectables.
+    
+        """
+        if self.secondaryjoin is not None and self.secondary is None:
+            raise sa_exc.ArgumentError(
+                "Property %s specified with secondary "
+                "join condition but "
+                "no secondary argument" % self.prop
+            )
+    
+        # find a join between the given mapper's mapped table and
+        # the given table. will try the mapper's local table first
+        # for more specificity, then if not found will try the more
+        # general mapped table, which in the case of inheritance is
+        # a join.
+        try:
+            consider_as_foreign_keys = self.consider_as_foreign_keys or None
+            if self.secondary is not None:
+                if self.secondaryjoin is None:
+                    self.secondaryjoin = join_condition(
+                        self.child_persist_selectable,
+                        self.secondary,
+                        a_subset=self.child_local_selectable,
+                        consider_as_foreign_keys=consider_as_foreign_keys,
+                    )
+                if self.primaryjoin_initial is None:
+                    self.primaryjoin = join_condition(
+                        self.parent_persist_selectable,
+                        self.secondary,
+                        a_subset=self.parent_local_selectable,
+                        consider_as_foreign_keys=consider_as_foreign_keys,
+                    )
+                else:
+                    self.primaryjoin = self.primaryjoin_initial
+            else:
+                if self.primaryjoin_initial is None:
+>                   self.primaryjoin = join_condition(
+                        self.parent_persist_selectable,
+                        self.child_persist_selectable,
+                        a_subset=self.parent_local_selectable,
+                        consider_as_foreign_keys=consider_as_foreign_keys,
+                    )
+
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/relationships.py:2423: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.12/site-packages/sqlalchemy/sql/util.py:123: in join_condition
+    return Join._join_condition(
+.venv/lib/python3.12/site-packages/sqlalchemy/sql/selectable.py:1342: in _join_condition
+    cls._joincond_trim_constraints(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'sqlalchemy.sql.selectable.Join'>
+a = Table('actions', MetaData(), Column('id', UUID(as_uuid=False), table=<actions>, primary_key=True, nullable=False, defa...w>, for_update=False)), Column('issue_id', UUID(as_uuid=False), ForeignKey('issues.id'), table=<actions>), schema=None)
+b = Table('issues', MetaData(), Column('id', UUID(as_uuid=False), table=<issues>, primary_key=True, nullable=False, defaul...default=ScalarElementColumnDefault('task')), Column('closed_at', DateTime(timezone=True), table=<issues>), schema=None)
+constraints = defaultdict(<class 'list'>, {ForeignKeyConstraint(<sqlalchemy.sql.base.ReadOnlyColumnCollection object at 0x7e730da9fb...on gen_uuid at 0x7e73123b7880>)), Column('issue_id', UUID(as_uuid=False), ForeignKey('issues.id'), table=<actions>))]})
+consider_as_foreign_keys = None
+
+    @classmethod
+    def _joincond_trim_constraints(
+        cls,
+        a: FromClause,
+        b: FromClause,
+        constraints: Dict[Any, Any],
+        consider_as_foreign_keys: Optional[Any],
+    ) -> None:
+        # more than one constraint matched.  narrow down the list
+        # to include just those FKCs that match exactly to
+        # "consider_as_foreign_keys".
+        if consider_as_foreign_keys:
+            for const in list(constraints):
+                if {f.parent for f in const.elements} != set(
+                    consider_as_foreign_keys
+                ):
+                    del constraints[const]
+    
+        # if still multiple constraints, but
+        # they all refer to the exact same end result, use it.
+        if len(constraints) > 1:
+            dedupe = {tuple(crit) for crit in constraints.values()}
+            if len(dedupe) == 1:
+                key = list(constraints)[0]
+                constraints = {key: constraints[key]}
+    
+        if len(constraints) != 1:
+>           raise exc.AmbiguousForeignKeysError(
+                "Can't determine join between '%s' and '%s'; "
+                "tables have more than one foreign key "
+                "constraint relationship between them. "
+                "Please specify the 'onclause' of this "
+                "join explicitly." % (a.description, b.description)
+            )
+E           sqlalchemy.exc.AmbiguousForeignKeysError: Can't determine join between 'actions' and 'issues'; tables have more than one foreign key constraint relationship between them. Please specify the 'onclause' of this join explicitly.
+
+.venv/lib/python3.12/site-packages/sqlalchemy/sql/selectable.py:1487: AmbiguousForeignKeysError
+
+The above exception was the direct cause of the following exception:
+
+client = <httpx.AsyncClient object at 0x7e73113d80e0>
+
+    @pytest.mark.asyncio
+    async def test_login_success(client):
+>       resp = await client.post("/api/v1/auth/login", json={
+            "email": "demo@example.com", "password": "demo1234"
+        })
+
+tests/test_auth.py:5: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.12/site-packages/httpx/_client.py:1905: in post
+    return await self.request(
+.venv/lib/python3.12/site-packages/httpx/_client.py:1585: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv/lib/python3.12/site-packages/httpx/_client.py:1674: in send
+    response = await self._send_handling_auth(
+.venv/lib/python3.12/site-packages/httpx/_client.py:1702: in _send_handling_auth
+    response = await self._send_handling_redirects(
+.venv/lib/python3.12/site-packages/httpx/_client.py:1739: in _send_handling_redirects
+    response = await self._send_single_request(request)
+.venv/lib/python3.12/site-packages/httpx/_client.py:1776: in _send_single_request
+    response = await transport.handle_async_request(request)
+.venv/lib/python3.12/site-packages/httpx/_transports/asgi.py:157: in handle_async_request
+    await self.app(scope, receive, send)
+.venv/lib/python3.12/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/middleware/errors.py:187: in __call__
+    raise exc
+.venv/lib/python3.12/site-packages/starlette/middleware/errors.py:165: in __call__
+    await self.app(scope, receive, _send)
+.venv/lib/python3.12/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:62: in wrapped_app
+    raise exc
+.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:51: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.12/site-packages/starlette/routing.py:715: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/routing.py:735: in app
+    await route.handle(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/routing.py:288: in handle
+    await self.app(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/routing.py:76: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:62: in wrapped_app
+    raise exc
+.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:51: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.12/site-packages/starlette/routing.py:73: in app
+    response = await f(request)
+.venv/lib/python3.12/site-packages/fastapi/routing.py:301: in app
+    raw_response = await run_endpoint_function(
+.venv/lib/python3.12/site-packages/fastapi/routing.py:214: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+.venv/lib/python3.12/site-packages/starlette/concurrency.py:39: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func, *args)
+.venv/lib/python3.12/site-packages/anyio/to_thread.py:63: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:2502: in run_sync_in_worker_thread
+    return await future
+.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:986: in run
+    result = context.run(func, *args)
+app/api/v1/routers/auth.py:29: in login
+    user = db.query(User).filter(User.email == payload.email).first()
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2941: in query
+    return self._query_cls(entities, self, **kwargs)
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/query.py:275: in __init__
+    self._set_entities(entities)
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/query.py:288: in _set_entities
+    coercions.expect(
+.venv/lib/python3.12/site-packages/sqlalchemy/sql/coercions.py:389: in expect
+    insp._post_inspect
+.venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py:1253: in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py:2711: in _post_inspect
+    self._check_configure()
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py:2388: in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py:4204: in _configure_registries
+    _do_configure_registries(registries, cascade)
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py:4245: in _do_configure_registries
+    mapper._post_configure_properties()
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py:2405: in _post_configure_properties
+    prop.init()
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/interfaces.py:584: in init
+    self.do_init()
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/relationships.py:1644: in do_init
+    self._setup_join_conditions()
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/relationships.py:1884: in _setup_join_conditions
+    self._join_condition = jc = JoinCondition(
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/relationships.py:2310: in __init__
+    self._determine_joins()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.orm.relationships.JoinCondition object at 0x7e7310b6f3b0>
+
+    def _determine_joins(self) -> None:
+        """Determine the 'primaryjoin' and 'secondaryjoin' attributes,
+        if not passed to the constructor already.
+    
+        This is based on analysis of the foreign key relationships
+        between the parent and target mapped selectables.
+    
+        """
+        if self.secondaryjoin is not None and self.secondary is None:
+            raise sa_exc.ArgumentError(
+                "Property %s specified with secondary "
+                "join condition but "
+                "no secondary argument" % self.prop
+            )
+    
+        # find a join between the given mapper's mapped table and
+        # the given table. will try the mapper's local table first
+        # for more specificity, then if not found will try the more
+        # general mapped table, which in the case of inheritance is
+        # a join.
+        try:
+            consider_as_foreign_keys = self.consider_as_foreign_keys or None
+            if self.secondary is not None:
+                if self.secondaryjoin is None:
+                    self.secondaryjoin = join_condition(
+                        self.child_persist_selectable,
+                        self.secondary,
+                        a_subset=self.child_local_selectable,
+                        consider_as_foreign_keys=consider_as_foreign_keys,
+                    )
+                if self.primaryjoin_initial is None:
+                    self.primaryjoin = join_condition(
+                        self.parent_persist_selectable,
+                        self.secondary,
+                        a_subset=self.parent_local_selectable,
+                        consider_as_foreign_keys=consider_as_foreign_keys,
+                    )
+                else:
+                    self.primaryjoin = self.primaryjoin_initial
+            else:
+                if self.primaryjoin_initial is None:
+                    self.primaryjoin = join_condition(
+                        self.parent_persist_selectable,
+                        self.child_persist_selectable,
+                        a_subset=self.parent_local_selectable,
+                        consider_as_foreign_keys=consider_as_foreign_keys,
+                    )
+                else:
+                    self.primaryjoin = self.primaryjoin_initial
+        except sa_exc.NoForeignKeysError as nfe:
+            if self.secondary is not None:
+                raise sa_exc.NoForeignKeysError(
+                    "Could not determine join "
+                    "condition between parent/child tables on "
+                    "relationship %s - there are no foreign keys "
+                    "linking these tables via secondary table '%s'.  "
+                    "Ensure that referencing columns are associated "
+                    "with a ForeignKey or ForeignKeyConstraint, or "
+                    "specify 'primaryjoin' and 'secondaryjoin' "
+                    "expressions." % (self.prop, self.secondary)
+                ) from nfe
+            else:
+                raise sa_exc.NoForeignKeysError(
+                    "Could not determine join "
+                    "condition between parent/child tables on "
+                    "relationship %s - there are no foreign keys "
+                    "linking these tables.  "
+                    "Ensure that referencing columns are associated "
+                    "with a ForeignKey or ForeignKeyConstraint, or "
+                    "specify a 'primaryjoin' expression." % self.prop
+                ) from nfe
+        except sa_exc.AmbiguousForeignKeysError as afe:
+            if self.secondary is not None:
+                raise sa_exc.AmbiguousForeignKeysError(
+                    "Could not determine join "
+                    "condition between parent/child tables on "
+                    "relationship %s - there are multiple foreign key "
+                    "paths linking the tables via secondary table '%s'.  "
+                    "Specify the 'foreign_keys' "
+                    "argument, providing a list of those columns which "
+                    "should be counted as containing a foreign key "
+                    "reference from the secondary table to each of the "
+                    "parent and child tables." % (self.prop, self.secondary)
+                ) from afe
+            else:
+>               raise sa_exc.AmbiguousForeignKeysError(
+                    "Could not determine join "
+                    "condition between parent/child tables on "
+                    "relationship %s - there are multiple foreign key "
+                    "paths linking the tables.  Specify the "
+                    "'foreign_keys' argument, providing a list of those "
+                    "columns which should be counted as containing a "
+                    "foreign key reference to the parent table." % self.prop
+                ) from afe
+E               sqlalchemy.exc.AmbiguousForeignKeysError: Could not determine join condition between parent/child tables on relationship Action.issue - there are multiple foreign key paths linking the tables.  Specify the 'foreign_keys' argument, providing a list of those columns which should be counted as containing a foreign key reference to the parent table.
+
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/relationships.py:2467: AmbiguousForeignKeysError
+__________________________ test_login_wrong_password ___________________________
+
+client = <httpx.AsyncClient object at 0x7e73113d80e0>
+
+    @pytest.mark.asyncio
+    async def test_login_wrong_password(client):
+>       resp = await client.post("/api/v1/auth/login", json={
+            "email": "demo@example.com", "password": "wrong"
+        })
+
+tests/test_auth.py:13: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.12/site-packages/httpx/_client.py:1905: in post
+    return await self.request(
+.venv/lib/python3.12/site-packages/httpx/_client.py:1585: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv/lib/python3.12/site-packages/httpx/_client.py:1674: in send
+    response = await self._send_handling_auth(
+.venv/lib/python3.12/site-packages/httpx/_client.py:1702: in _send_handling_auth
+    response = await self._send_handling_redirects(
+.venv/lib/python3.12/site-packages/httpx/_client.py:1739: in _send_handling_redirects
+    response = await self._send_single_request(request)
+.venv/lib/python3.12/site-packages/httpx/_client.py:1776: in _send_single_request
+    response = await transport.handle_async_request(request)
+.venv/lib/python3.12/site-packages/httpx/_transports/asgi.py:157: in handle_async_request
+    await self.app(scope, receive, send)
+.venv/lib/python3.12/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/middleware/errors.py:187: in __call__
+    raise exc
+.venv/lib/python3.12/site-packages/starlette/middleware/errors.py:165: in __call__
+    await self.app(scope, receive, _send)
+.venv/lib/python3.12/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:62: in wrapped_app
+    raise exc
+.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:51: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.12/site-packages/starlette/routing.py:715: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/routing.py:735: in app
+    await route.handle(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/routing.py:288: in handle
+    await self.app(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/routing.py:76: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:62: in wrapped_app
+    raise exc
+.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:51: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.12/site-packages/starlette/routing.py:73: in app
+    response = await f(request)
+.venv/lib/python3.12/site-packages/fastapi/routing.py:301: in app
+    raw_response = await run_endpoint_function(
+.venv/lib/python3.12/site-packages/fastapi/routing.py:214: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+.venv/lib/python3.12/site-packages/starlette/concurrency.py:39: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func, *args)
+.venv/lib/python3.12/site-packages/anyio/to_thread.py:63: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:2502: in run_sync_in_worker_thread
+    return await future
+.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:986: in run
+    result = context.run(func, *args)
+app/api/v1/routers/auth.py:29: in login
+    user = db.query(User).filter(User.email == payload.email).first()
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2941: in query
+    return self._query_cls(entities, self, **kwargs)
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/query.py:275: in __init__
+    self._set_entities(entities)
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/query.py:288: in _set_entities
+    coercions.expect(
+.venv/lib/python3.12/site-packages/sqlalchemy/sql/coercions.py:389: in expect
+    insp._post_inspect
+.venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py:1253: in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py:2711: in _post_inspect
+    self._check_configure()
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py:2388: in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py:4204: in _configure_registries
+    _do_configure_registries(registries, cascade)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+registries = set(), cascade = True
+
+    @util.preload_module("sqlalchemy.orm.decl_api")
+    def _do_configure_registries(
+        registries: Set[_RegistryType], cascade: bool
+    ) -> None:
+        registry = util.preloaded.orm_decl_api.registry
+    
+        orig = set(registries)
+    
+        for reg in registry._recurse_with_dependencies(registries):
+            has_skip = False
+    
+            for mapper in reg._mappers_to_configure():
+                run_configure = None
+    
+                for fn in mapper.dispatch.before_mapper_configured:
+                    run_configure = fn(mapper, mapper.class_)
+                    if run_configure is EXT_SKIP:
+                        has_skip = True
+                        break
+                if run_configure is EXT_SKIP:
+                    continue
+    
+                if getattr(mapper, "_configure_failed", False):
+                    e = sa_exc.InvalidRequestError(
+                        "One or more mappers failed to initialize - "
+                        "can't proceed with initialization of other "
+                        "mappers. Triggering mapper: '%s'. "
+                        "Original exception was: %s"
+                        % (mapper, mapper._configure_failed)
+                    )
+                    e._configure_failed = mapper._configure_failed  # type: ignore
+>                   raise e
+E                   sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Action(actions)]'. Original exception was: Could not determine join condition between parent/child tables on relationship Action.issue - there are multiple foreign key paths linking the tables.  Specify the 'foreign_keys' argument, providing a list of those columns which should be counted as containing a foreign key reference to the parent table.
+
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/mapper.py:4241: InvalidRequestError
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/pydantic/_internal/_config.py:291: 10 warnings
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/pydantic/_internal/_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.8/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+app/db/session.py:8
+  /home/karkyon/projects/decision-os/backend/app/db/session.py:8: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+tests/test_auth.py::test_login_success
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:761: DeprecationWarning: The event_loop fixture provided by pytest-asyncio has been redefined in
+  /home/karkyon/projects/decision-os/backend/tests/conftest.py:27
+  Replacing the event_loop fixture with a custom implementation is deprecated
+  and will lead to errors in the future.
+  If you want to request an asyncio event loop with a scope other than function
+  scope, use the "scope" argument to the asyncio mark when marking the tests.
+  If you want to return different types of event loops, use the event_loop_policy
+  fixture.
+  
+    warnings.warn(
+
+tests/test_projects.py::test_create_project
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:818: DeprecationWarning: pytest-asyncio detected an unclosed event loop when tearing down the event_loop
+  fixture: <_UnixSelectorEventLoop running=False closed=False debug=False>
+  pytest-asyncio will close the event loop for you, but future versions of the
+  library will no longer do so. In order to ensure compatibility with future
+  versions, please make sure that:
+      1. Any custom "event_loop" fixture properly closes the loop after yielding it
+      2. The scopes of your custom "event_loop" fixtures do not overlap
+      3. Your code does not modify the event loop in async fixtures or tests
+  
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform linux, python 3.12.3-final-0 -----------
+Name                                  Stmts   Miss  Cover   Missing
+-------------------------------------------------------------------
+app/api/v1/api.py                        23      0   100%
+app/api/v1/routers/__init__.py            0      0   100%
+app/api/v1/routers/actions.py            72     55    24%   25-53, 62-100, 110-151
+app/api/v1/routers/analyze.py            65     49    25%   23-68, 72-103
+app/api/v1/routers/auth.py               28     14    50%   12-25, 30-33, 38
+app/api/v1/routers/conversations.py      56     39    30%   20-31, 41-65, 76-97, 107-115
+app/api/v1/routers/dashboard.py          32     21    34%   20-60
+app/api/v1/routers/decisions.py          48     31    35%   25-30, 39-45, 56-82, 92-99
+app/api/v1/routers/inputs.py             56     39    30%   19-41, 50-56, 67-70, 83-134
+app/api/v1/routers/issues.py            112     86    23%   42-120, 134-162, 171-174, 184-205, 209, 234-235, 245-257
+app/api/v1/routers/items.py              45     30    33%   19-22, 32-56, 66-78
+app/api/v1/routers/labels.py             68     46    32%   23-25, 39-64, 86-104, 120-143, 154-168
+app/api/v1/routers/projects.py           28      6    79%   26-30, 34
+app/api/v1/routers/search.py             77     46    40%   41-50, 66-165
+app/api/v1/routers/trace.py              29     18    38%   24-80
+app/api/v1/routers/users.py              60     37    38%   32-49, 60, 69-76, 87-108
+app/api/v1/routers/ws.py                 35     23    34%   18-22, 31-55, 61
+app/core/config.py                       15      0   100%
+app/core/deps.py                         42     20    52%   22-30, 37-44, 47, 50, 53, 56, 59, 62
+app/core/notifier.py                     58     40    31%   25-33, 36-40, 44, 48-57, 61-76, 88
+app/core/security.py                     20     10    50%   10, 13, 16-19, 22-25
+app/db/session.py                        12      4    67%   11-15
+app/main.py                              13      0   100%
+app/models/__init__.py                   13      0   100%
+app/models/action.py                     16      0   100%
+app/models/audit_log.py                  13      0   100%
+app/models/base.py                        8      1    88%   10
+app/models/conversation.py               13      0   100%
+app/models/decision.py                   16      0   100%
+app/models/input.py                      19      0   100%
+app/models/interpretation.py             14      0   100%
+app/models/issue.py                      26      0   100%
+app/models/item.py                       18      0   100%
+app/models/learning_log.py               13      0   100%
+app/models/project.py                    14      0   100%
+app/models/user.py                       15      0   100%
+app/schemas/__init__.py                   0      0   100%
+app/schemas/action.py                    15      0   100%
+app/schemas/auth.py                      15      0   100%
+app/schemas/conversation.py              24      0   100%
+app/schemas/decision.py                  27      0   100%
+app/schemas/input.py                     29      4    86%   18-20, 23
+app/schemas/issue.py                     34     34     0%   1-38
+app/schemas/item.py                      19      0   100%
+engine/__init__.py                        1      0   100%
+engine/classifier.py                     89     26    71%   256-258, 278-279, 299-300, 323-327, 341-343, 348-369
+engine/main.py                           20      3    85%   36-38
+engine/normalizer.py                     12      1    92%   24
+engine/scorer.py                         27      3    89%   45, 76, 81
+engine/segmenter.py                      44     11    75%   13, 22, 32, 34-35, 52-57
+-------------------------------------------------------------------
+TOTAL                                  1548    697    55%
+Coverage HTML written to dir htmlcov
+Coverage JSON written to file .coverage.json
+
+=========================== short test summary info ============================
+FAILED tests/test_auth.py::test_login_success - sqlalchemy.exc.AmbiguousForei...
+FAILED tests/test_auth.py::test_login_wrong_password - sqlalchemy.exc.Invalid...
+ERROR tests/test_issues.py::test_list_issues
+ERROR tests/test_issues.py::test_create_issue
+ERROR tests/test_issues.py::test_issue_type_change
+ERROR tests/test_issues.py::test_filter_issues
+ERROR tests/test_issues.py::test_rbac_users_endpoint
+ERROR tests/test_projects.py::test_list_projects
+ERROR tests/test_projects.py::test_create_project
+============== 2 failed, 7 passed, 14 warnings, 7 errors in 4.62s ==============

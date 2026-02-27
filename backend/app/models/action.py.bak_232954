@@ -3,7 +3,6 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from .base import Base, gen_uuid
 
-
 class Action(Base):
     __tablename__ = "actions"
 
@@ -15,18 +14,7 @@ class Action(Base):
     decision_reason = Column(Text)
     decided_at = Column(DateTime(timezone=True), server_default=func.now())
     issue_id = Column(UUID(as_uuid=False), ForeignKey("issues.id", ondelete="SET NULL"), nullable=True)
-    linked_issue_id = Column(UUID(as_uuid=False), ForeignKey("issues.id", ondelete="SET NULL"), nullable=True)
 
     item = relationship("Item", back_populates="action")
-    issue = relationship(
-        "Issue",
-        foreign_keys=[issue_id],
-        back_populates="action",
-        uselist=False,
-    )
-    linked_issue = relationship(
-        "Issue",
-        foreign_keys=[linked_issue_id],
-        uselist=False,
-    )
+    issue = relationship("Issue", back_populates="action", uselist=False)
     decider = relationship("User", foreign_keys=[decided_by])
