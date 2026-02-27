@@ -22,27 +22,10 @@ interface Comment {
 
 type TabType = "detail" | "trace" | "comments" | "decisions";
 
-
-const ISSUE_TYPE_BADGE: Record<string, { icon: string; label: string; color: string }> = {
-  epic:  { icon: "🟣", label: "エピック", color: "#7c3aed" },
-  story: { icon: "🔵", label: "ストーリー", color: "#2563eb" },
-  task:  { icon: "⬜", label: "タスク",   color: "#64748b" },
-};
-
 export default function IssueDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [issue, setIssue] = useState<Issue | null>(null);
-
-  // 子課題ツリー取得
-  const [childTree, setChildTree] = useState<ChildIssue[]>([]);
-  useEffect(() => {
-    if (!id) return;
-    issueApi.tree(id)
-      .then(res => setChildTree(res.data.children || []))
-      .catch(() => {});
-  }, [id]);
-
   const [trace, setTrace] = useState<TraceData | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [decisions, setDecisions] = useState<any[]>([]);
@@ -463,61 +446,3 @@ const actionBtn = (bg: string): React.CSSProperties => ({
   padding: "5px 14px", borderRadius: "6px", border: "none",
   background: bg, color: "#fff", cursor: "pointer", fontSize: "13px",
 });
-
-
-// ─── 子課題ツリー ──────────────────────────────────────────
-interface ChildIssue {
-  id: string; title: string; status: string;
-  priority: string; issue_type: string;
-  children?: ChildIssue[];
-}
-
-const TYPE_ICON: Record<string, string> = {
-  epic: "🟣", story: "🔵", task: "⬜",
-};
-const STATUS_COLOR: Record<string, string> = {
-  open: "#dc2626", in_progress: "#ca8a04",
-  review: "#7c3aed", done: "#16a34a", hold: "#64748b",
-};
-
-function ChildIssueTree({
-  issues, depth = 0, navigate,
-}: {
-  issues: ChildIssue[]; depth?: number; navigate: (path: string) => void;
-}) {
-  if (!issues || issues.length === 0) return null;
-  return (
-    <div style={{ marginLeft: depth * 20 }}>
-      {issues.map(issue => (
-        <div key={issue.id}>
-          <div
-            onClick={() => navigate(`/issues/${issue.id}`)}
-            style={{
-              display: "flex", alignItems: "center", gap: "8px",
-              padding: "7px 10px", borderRadius: "6px", cursor: "pointer",
-              background: depth === 0 ? "#1e293b" : "transparent",
-              border: depth === 0 ? "1px solid #334155" : "none",
-              marginBottom: "4px",
-              transition: "background 0.1s",
-            }}
-            onMouseEnter={e => (e.currentTarget.style.background = "#1e3a5f")}
-            onMouseLeave={e => (e.currentTarget.style.background = depth === 0 ? "#1e293b" : "transparent")}
-          >
-            <span style={{ fontSize: "13px" }}>{TYPE_ICON[issue.issue_type] || "⬜"}</span>
-            <span style={{ flex: 1, fontSize: "13px", color: "#e2e8f0" }}>{issue.title}</span>
-            <span style={{
-              fontSize: "11px", padding: "2px 8px", borderRadius: "20px",
-              background: "#0f172a",
-              color: STATUS_COLOR[issue.status] || "#94a3b8",
-              border: `1px solid ${STATUS_COLOR[issue.status] || "#334155"}`,
-            }}>{issue.status}</span>
-          </div>
-          {issue.children && issue.children.length > 0 && (
-            <ChildIssueTree issues={issue.children} depth={depth + 1} navigate={navigate} />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-

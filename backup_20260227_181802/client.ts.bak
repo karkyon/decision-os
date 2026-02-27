@@ -85,9 +85,6 @@ export const issueApi = {
   get:    (id: string)               => api.get(`/issues/${id}`),
   create: (body: object)             => api.post("/issues", body),
   update: (id: string, body: object) => api.patch(`/issues/${id}`, body),
-
-  children: (id: string) => api.get(`/issues/${id}/children`),
-  tree:     (id: string) => api.get(`/issues/${id}/tree`),
 };
 
 // Trace
@@ -123,24 +120,3 @@ export const decisionApi = {
   }) => client.post("/decisions", data),
   delete: (id: string) => client.delete(`/decisions/${id}`),
 };
-
-export const labelApi = {
-  list:    (q?: string, projectId?: string) => {
-    const p = new URLSearchParams();
-    if (q)         p.append("q", q);
-    if (projectId) p.append("project_id", projectId);
-    return api.get(`/labels${p.toString() ? "?" + p.toString() : ""}`);
-  },
-  suggest: (q: string, projectId?: string) => {
-    const p = new URLSearchParams({ q });
-    if (projectId) p.append("project_id", projectId);
-    return api.get(`/labels/suggest?${p.toString()}`);
-  },
-  merge:   (fromLabel: string, toLabel: string, projectId?: string) =>
-    api.post("/labels/merge", { from_label: fromLabel, to_label: toLabel, project_id: projectId }),
-  delete:  (label: string, projectId?: string) => {
-    const p = projectId ? `?project_id=${projectId}` : "";
-    return api.delete(`/labels/${encodeURIComponent(label)}${p}`);
-  },
-};
-

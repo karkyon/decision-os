@@ -82,6 +82,18 @@ def update_conversation(
     conv.body = payload.body.strip()
     db.commit()
     db.refresh(conv)
+    import asyncio
+    try:
+        asyncio.get_event_loop().create_task(
+            manager.broadcast_notification(
+                event_type="comment.posted",
+                title="新しいコメント",
+                body=(conv.body or "")[:50],
+                url=f"/issues/{conv.issue_id}" if conv.issue_id else None,
+            )
+        )
+    except Exception:
+        pass
     return conv
 
 

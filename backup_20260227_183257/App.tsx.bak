@@ -1,5 +1,4 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import NotificationToast from "./components/NotificationToast";
 import { authStore } from "./store/auth";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -8,7 +7,6 @@ import IssueList from "./pages/IssueList";
 import IssueDetail from "./pages/IssueDetail";
 import Search from './pages/Search';
 import Decisions from './pages/Decisions';
-import Labels from "./pages/Labels";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   return authStore.isLoggedIn() ? <>{children}</> : <Navigate to="/login" replace />;
@@ -25,8 +23,6 @@ export default function App() {
         <Route path="/search" element={<Search />
         <Route path="/decisions" element={<Decisions />} />} /></PrivateRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
-      <Route path="/labels" element={<Labels />} />
-        </Routes>
-      <NotificationToast />
+    </Routes>
   );
 }
