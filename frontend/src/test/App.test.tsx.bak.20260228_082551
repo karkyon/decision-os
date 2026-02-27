@@ -17,6 +17,7 @@ describe('App', () => {
         </MemoryRouter>
       </QueryClientProvider>
     )
+    // DOM が存在することだけを確認（screen/toBeInTheDocument不要）
     expect(container).toBeTruthy()
   })
 })

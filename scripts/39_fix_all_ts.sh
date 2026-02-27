@@ -1,3 +1,211 @@
+#!/usr/bin/env bash
+# =============================================================================
+# 39_fix_all_ts.sh — TSビルドエラー全件修正
+#   - App.tsx: JSX親要素エラー
+#   - Layout.tsx: 構文エラー
+#   - IssueDetail.tsx: JSX構造が壊れている → 完全書き直し
+# =============================================================================
+set -euo pipefail
+GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; BOLD='\033[1m'; CYAN='\033[0;36m'; RESET='\033[0m'
+ok()      { echo -e "${GREEN}[OK]${RESET}    $*"; }
+warn()    { echo -e "${YELLOW}[WARN]${RESET}  $*"; }
+info()    { echo -e "${CYAN}[INFO]${RESET}  $*"; }
+section() { echo -e "\n${BOLD}========== $* ==========${RESET}"; }
+
+FRONTEND="$HOME/projects/decision-os/frontend"
+SRC="$FRONTEND/src"
+TS=$(date +%Y%m%d_%H%M%S)
+BACKUP="$HOME/projects/decision-os/backup_ts_$TS"
+mkdir -p "$BACKUP"
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+nvm use 20 2>/dev/null || true
+
+# =============================================================================
+section "0. 壊れたファイルをバックアップ"
+# =============================================================================
+cp "$SRC/App.tsx"                "$BACKUP/" 2>/dev/null || true
+cp "$SRC/components/Layout.tsx"  "$BACKUP/" 2>/dev/null || true
+cp "$SRC/pages/IssueDetail.tsx"  "$BACKUP/" 2>/dev/null || true
+ok "バックアップ: $BACKUP"
+
+# =============================================================================
+section "1. App.tsx 修正（JSX親要素エラー）"
+# =============================================================================
+info "App.tsx 現在の内容 (15-35行):"
+sed -n '15,35p' "$SRC/App.tsx" || true
+
+# App.tsx の実態に合わせてRoutes構造を修正
+python3 << 'PYEOF'
+import os, re
+
+path = os.path.expanduser(
+    "~/projects/decision-os/frontend/src/App.tsx"
+)
+with open(path) as f:
+    content = f.read()
+
+# JSX親要素エラーの典型パターン: Routes の外に要素が漏れている
+# 修正: 全体を <> ... </> で囲む or Routes内に収める
+
+# 既に修正済みか確認
+if content.count('<Routes>') == 1 and 'TS2657' not in content:
+    print("  変更不要（既に正常）")
+else:
+    # Routeが複数の親要素を持つパターンを修正
+    # 典型: return ( <Route .../> <Route .../> ) → return ( <Routes> <Route.../> </Routes> )
+    print(f"  App.tsx の Routes 構造を確認:")
+    for i, line in enumerate(content.split('\n')[14:30], 15):
+        print(f"    {i}: {line}")
+PYEOF
+
+# App.tsx を安全な構造に書き直す
+cat > "$SRC/App.tsx" << 'APPEOF'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { useAuthStore } from './store/auth'
+import Login from './pages/Login'
+import Dashboard from './pages/Dashboard'
+import InputNew from './pages/InputNew'
+import IssueList from './pages/IssueList'
+import IssueDetail from './pages/IssueDetail'
+import Layout from './components/Layout'
+
+function PrivateRoute({ children }: { children: React.ReactNode }) {
+  const { token } = useAuthStore()
+  return token ? <>{children}</> : <Navigate to="/login" replace />
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route
+        path="/"
+        element={
+          <PrivateRoute>
+            <Layout />
+          </PrivateRoute>
+        }
+      >
+        <Route index element={<Dashboard />} />
+        <Route path="inputs/new" element={<InputNew />} />
+        <Route path="issues" element={<IssueList />} />
+        <Route path="issues/:id" element={<IssueDetail />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
+APPEOF
+ok "App.tsx 修正完了"
+
+# =============================================================================
+section "2. Layout.tsx 修正（構文エラー line 14）"
+# =============================================================================
+info "Layout.tsx 現在の内容 (10-20行):"
+sed -n '10,20p' "$SRC/components/Layout.tsx" || true
+
+python3 << 'PYEOF'
+import os, re
+
+path = os.path.expanduser(
+    "~/projects/decision-os/frontend/src/components/Layout.tsx"
+)
+if not os.path.exists(path):
+    print("  Layout.tsx が見つかりません")
+    exit()
+
+with open(path) as f:
+    content = f.read()
+
+print("  Layout.tsx 全文:")
+for i, line in enumerate(content.split('\n'), 1):
+    print(f"    {i:3d}: {line}")
+PYEOF
+
+# Layout.tsx を正常な構造で書き直し
+cat > "$SRC/components/Layout.tsx" << 'LAYOUTEOF'
+import { Outlet, NavLink } from 'react-router-dom'
+import { useAuthStore } from '../store/auth'
+
+export default function Layout() {
+  const { logout } = useAuthStore()
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      {/* サイドバー */}
+      <nav style={{
+        width: '220px',
+        background: '#1e293b',
+        color: '#fff',
+        padding: '24px 0',
+        flexShrink: 0,
+      }}>
+        <div style={{ padding: '0 20px 24px', fontSize: '18px', fontWeight: 700, color: '#60a5fa' }}>
+          decision-os
+        </div>
+        <NavLink
+          to="/"
+          end
+          style={({ isActive }) => navStyle(isActive)}
+        >
+          ダッシュボード
+        </NavLink>
+        <NavLink
+          to="/inputs/new"
+          style={({ isActive }) => navStyle(isActive)}
+        >
+          要望登録
+        </NavLink>
+        <NavLink
+          to="/issues"
+          style={({ isActive }) => navStyle(isActive)}
+        >
+          課題一覧
+        </NavLink>
+        <div style={{ marginTop: 'auto', padding: '20px' }}>
+          <button
+            onClick={logout}
+            style={{
+              width: '100%', padding: '8px', background: '#334155',
+              color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer',
+            }}
+          >
+            ログアウト
+          </button>
+        </div>
+      </nav>
+
+      {/* メインコンテンツ */}
+      <main style={{ flex: 1, padding: '32px', background: '#f8fafc', overflowY: 'auto' }}>
+        <Outlet />
+      </main>
+    </div>
+  )
+}
+
+function navStyle(isActive: boolean) {
+  return {
+    display: 'block',
+    padding: '12px 20px',
+    color: isActive ? '#60a5fa' : '#cbd5e1',
+    textDecoration: 'none',
+    background: isActive ? '#0f172a' : 'transparent',
+    fontWeight: isActive ? 600 : 400,
+  }
+}
+LAYOUTEOF
+ok "Layout.tsx 修正完了"
+
+# =============================================================================
+section "3. IssueDetail.tsx 完全書き直し（JSX構造崩壊を修正）"
+# =============================================================================
+info "IssueDetail.tsx のエラー行数を確認:"
+wc -l "$SRC/pages/IssueDetail.tsx" || true
+info "エラーが100件以上 → JSX構造が根本的に壊れているため完全書き直し"
+
+cat > "$SRC/pages/IssueDetail.tsx" << 'ISSUEEOF'
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/auth'
@@ -400,3 +608,111 @@ const tagStyle: React.CSSProperties = {
   fontSize: '12px',
   fontWeight: 600,
 }
+ISSUEEOF
+ok "IssueDetail.tsx 完全書き直し完了"
+
+# =============================================================================
+section "4. ビルド確認"
+# =============================================================================
+cd "$FRONTEND"
+info "npm run build 実行中..."
+BUILD_OUT=$(npm run build 2>&1)
+BUILD_EXIT=$?
+
+echo "$BUILD_OUT" | tail -20
+
+echo ""
+if [[ $BUILD_EXIT -eq 0 ]]; then
+    ok "🎉 ビルド成功！ TSエラー完全解消"
+else
+    warn "残りエラー:"
+    echo "$BUILD_OUT" | grep "error TS" | head -20
+fi
+
+# =============================================================================
+section "5. #2 課題一覧バグ診断 — API・フロント確認"
+# =============================================================================
+cd "$HOME/projects/decision-os/backend"
+source .venv/bin/activate
+
+# バックエンド起動確認
+if ! curl -s http://localhost:8089/docs > /dev/null 2>&1; then
+    warn "バックエンドが停止中 → 再起動します"
+    pkill -f uvicorn 2>/dev/null || true; sleep 1
+    nohup uvicorn app.main:app --host 0.0.0.0 --port 8089 --reload \
+      > ~/projects/decision-os/logs/backend.log 2>&1 &
+    sleep 4
+fi
+
+# ログイン
+TOKEN=$(curl -s -X POST http://localhost:8089/api/v1/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"email":"demo@example.com","password":"demo1234"}' \
+    | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('access_token',''))" 2>/dev/null || echo "")
+
+if [[ -z "$TOKEN" ]]; then
+    warn "ログイン失敗 → デモアカウントがない可能性"
+    # アカウント作成
+    info "デモアカウント作成を試みます..."
+    curl -s -X POST http://localhost:8089/api/v1/auth/register \
+        -H "Content-Type: application/json" \
+        -d '{"name":"Demo User","email":"demo@example.com","password":"demo1234","role":"pm"}' \
+        | python3 -m json.tool 2>/dev/null || true
+
+    TOKEN=$(curl -s -X POST http://localhost:8089/api/v1/auth/login \
+        -H "Content-Type: application/json" \
+        -d '{"email":"demo@example.com","password":"demo1234"}' \
+        | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('access_token',''))" 2>/dev/null || echo "")
+fi
+
+if [[ -n "$TOKEN" ]]; then
+    info "ログイン成功 → データ確認:"
+
+    echo ""
+    info "▼ Projects:"
+    curl -s http://localhost:8089/api/v1/projects \
+        -H "Authorization: Bearer $TOKEN" \
+        | python3 -c "import sys,json; d=json.load(sys.stdin); [print(f'  id={p[\"id\"]} name={p[\"name\"]}') for p in (d if isinstance(d,list) else d.get('items',[]))]" 2>/dev/null || echo "  (なし)"
+
+    echo ""
+    info "▼ Actions (最新5件):"
+    curl -s "http://localhost:8089/api/v1/actions?limit=5" \
+        -H "Authorization: Bearer $TOKEN" \
+        | python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+items = d if isinstance(d,list) else d.get('items',[])
+for a in items[:5]:
+    print(f'  id={a[\"id\"]} type={a[\"action_type\"]} item_id={a[\"item_id\"]}')
+if not items:
+    print('  (なし)')
+" 2>/dev/null || echo "  (レスポンスなし)"
+
+    echo ""
+    info "▼ Issues (最新5件):"
+    curl -s "http://localhost:8089/api/v1/issues?limit=5" \
+        -H "Authorization: Bearer $TOKEN" \
+        | python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+items = d if isinstance(d,list) else d.get('items',[])
+for i in items[:5]:
+    print(f'  id={i[\"id\"]} title={i[\"title\"][:40]} status={i[\"status\"]}')
+if not items:
+    print('  (なし) ← これが問題の可能性')
+" 2>/dev/null || echo "  (レスポンスなし)"
+
+    echo ""
+    info "▼ actions.py の Issue自動生成ロジック確認:"
+    grep -n "Issue\|CREATE_ISSUE\|issue" \
+        "$HOME/projects/decision-os/backend/app/api/v1/routers/actions.py" \
+        | head -20 || echo "  (actions.py が見つからない)"
+fi
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  39_fix_all_ts.sh 完了"
+echo ""
+echo "  ✅ ビルド成功なら → 結果を貼ってください（#2バグ修正へ）"
+echo "  ❌ エラー残りなら → エラー行を貼ってください"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

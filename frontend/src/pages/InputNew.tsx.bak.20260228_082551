@@ -37,6 +37,7 @@ export default function InputNew() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [createdIssueCount, setCreatedIssueCount] = useState(0);
+  const [inputId, setInputId] = useState<string | null>(null);
 
   // ─── STEP1: 原文登録 → 分解実行 ─────────────────────────────
   const handleAnalyze = async () => {
@@ -46,6 +47,7 @@ export default function InputNew() {
       // 1. INPUT 登録
       const inpRes = await inputApi.create({ text, source_type: sourceType });
       const newInputId: string = inpRes.data.id;
+      setInputId(newInputId);
 
       // 2. 分解実行
       const anaRes = await analyzeApi.analyze(newInputId);
@@ -416,6 +418,7 @@ export default function InputNew() {
               📋 課題一覧を確認
             </button>
             <button
+              onClick={() => { setStep(1); setItems([]); setText(""); setError(""); setInputId(null); }}
               style={{
                 padding: "12px 28px", borderRadius: "8px",
                 background: "#334155", color: "#e2e8f0", border: "none",
