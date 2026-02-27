@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Layout from "../components/Layout";
 import { inputApi, analyzeApi, itemApi, actionApi } from "../api/client";
 import {
   INTENT_LABELS, DOMAIN_LABELS, ACTION_LABELS,
@@ -136,7 +137,7 @@ export default function InputNew() {
 
   // ─── Render ──────────────────────────────────────────────────
   return (
-    <div style={{padding:"24px",color:"#e2e8f0"}}>
+    <Layout>
       {/* ステップインジケーター */}
       <div style={{ display: "flex", gap: "8px", marginBottom: "24px", alignItems: "center" }}>
         {["1. 原文入力", "2. 分類確認・修正", "3. ACTION決定"].map((s, i) => (
@@ -426,7 +427,7 @@ export default function InputNew() {
           </div>
         </div>
       )}
-    </div>
+    </Layout>
   );
 }
 

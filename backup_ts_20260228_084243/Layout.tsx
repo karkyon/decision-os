@@ -1,8 +1,8 @@
 import { Outlet, NavLink } from 'react-router-dom'
-import { authStore } from '../store/auth'
+import { useAuthStore } from '../store/auth'
 
 export default function Layout() {
-  const logout = () => authStore.logout()
+  const { logout } = useAuthStore()
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>

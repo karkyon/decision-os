@@ -1,7 +1,6 @@
-import React from 'react'
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { authStore } from '../store/auth'
+import { useAuthStore } from '../store/auth'
 
 interface Issue {
   id: string
@@ -62,7 +61,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 export default function IssueDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const token = authStore.getToken()
+  const { token } = useAuthStore()
 
   const [issue, setIssue] = useState<Issue | null>(null)
   const [trace, setTrace] = useState<TraceData | null>(null)

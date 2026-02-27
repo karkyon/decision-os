@@ -7,7 +7,7 @@
 import React, { useEffect, useState } from "react";
 import { usePermission } from "../hooks/usePermission";
 import { RoleBadge } from "../components/RoleBadge";
-import api from "../api/client";
+import { api } from "../api/client";
 
 interface User {
   id: string;

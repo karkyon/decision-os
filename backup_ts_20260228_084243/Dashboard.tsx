@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Layout from "../components/Layout";
 import client from "../api/client";
 import { PRIORITY_COLORS, type Priority } from "../types/index";
 
@@ -27,15 +28,15 @@ export default function Dashboard() {
   }, []);
 
   if (loading) return (
-    <div style={{padding:"24px",color:"#e2e8f0"}}>
+    <Layout>
       <div style={{ textAlign: "center", padding: "80px", color: "#64748b" }}>
         🔄 読み込み中...
       </div>
-    </div>
+    </Layout>
   );
 
   return (
-    <div style={{padding:"24px",color:"#e2e8f0"}}>
+    <Layout>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
         <h1 style={{ margin: 0, fontSize: "22px" }}>ダッシュボード</h1>
         <button
@@ -158,7 +159,7 @@ export default function Dashboard() {
           </button>
         </div>
       )}
-    </div>
+    </Layout>
   );
 }
 

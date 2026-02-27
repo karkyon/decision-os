@@ -18,6 +18,7 @@ export default function NotificationToast() {
   const { notifications } = useNotifications();
   const navigate = useNavigate();
   const [toasts, setToasts] = useState<(Notification & { visible: boolean })[]>([]);
+  const prevLen = useState(0);
 
   // 新着通知をトーストに追加
   useEffect(() => {

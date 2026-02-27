@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Layout from "../components/Layout";
 import { labelApi } from "../api/client";
 
 interface LabelInfo {
@@ -59,7 +60,7 @@ export default function Labels() {
   );
 
   return (
-    <div style={{padding:"24px",color:"#e2e8f0"}}>
+    <Layout>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <h1 style={{ margin: 0, fontSize: "20px" }}>🏷 ラベル管理</h1>
         <span style={{ color: "#64748b", fontSize: "13px" }}>{labels.length} ラベル使用中</span>
@@ -180,7 +181,7 @@ export default function Labels() {
           ))}
         </div>
       )}
-    </div>
+    </Layout>
   );
 }
 

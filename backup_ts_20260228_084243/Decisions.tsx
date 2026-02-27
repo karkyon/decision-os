@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import Layout from "../components/Layout";
 import { decisionApi, projectApi, issueApi } from "../api/client";
 
 interface Decision {
@@ -46,7 +47,7 @@ export default function Decisions() {
         if (r.data.length > 0 && !form.project_id) {
           setForm(f => ({ ...f, project_id: r.data[0].id }));
           // プロジェクト最初のを使って課題一覧も取得
-          issueApi.list({ project_id: r.data[0].id }).then((ir: any) => setIssues(ir.data)).catch(() => {});
+          issueApi.list(r.data[0].id).then(ir => setIssues(ir.data)).catch(() => {});
         }
       }),
       decisionApi.list(
@@ -60,7 +61,7 @@ export default function Decisions() {
   const handleProjectChange = async (pid: string) => {
     setForm(f => ({ ...f, project_id: pid, related_issue_id: "" }));
     try {
-      const r = await issueApi.list({ project_id: pid });
+      const r = await issueApi.list(pid);
       setIssues(r.data);
     } catch { setIssues([]); }
   };
@@ -90,7 +91,7 @@ export default function Decisions() {
   };
 
   return (
-    <div style={{padding:"24px",color:"#e2e8f0"}}>
+    <Layout>
       {/* ヘッダー */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <div>
@@ -231,7 +232,7 @@ export default function Decisions() {
           ))}
         </div>
       )}
-    </div>
+    </Layout>
   );
 }
 

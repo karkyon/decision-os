@@ -11,19 +11,4 @@ export const authStore = {
     localStorage.removeItem("user");
   },
   isLoggedIn: () => !!localStorage.getItem("token"),
-  logout: () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.href = "/login";
-  },
 };
-
-// --- 後方互換ラッパー (useAuthStore / userAtom) ---
-export function useAuthStore() {
-  return {
-    isLoggedIn: () => authStore.isLoggedIn(),
-    logout: () => authStore.logout(),
-    user: authStore.getUser ? authStore.getUser() : null,
-  }
-}
-export const userAtom = null  // jotai 非使用のダミー（usePermission.ts用）

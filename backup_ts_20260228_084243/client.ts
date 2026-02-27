@@ -80,14 +80,14 @@ export const issueApi = {
   } = {}) => {
     const p = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== "") p.append(k, String(v)); });
-    return client.get(`/issues${p.toString() ? "?" + p.toString() : ""}`);
+    return api.get(`/issues${p.toString() ? "?" + p.toString() : ""}`);
   },
-  get:    (id: string)               => client.get(`/issues/${id}`),
-  create: (body: object)             => client.post("/issues", body),
-  update: (id: string, body: object) => client.patch(`/issues/${id}`, body),
+  get:    (id: string)               => api.get(`/issues/${id}`),
+  create: (body: object)             => api.post("/issues", body),
+  update: (id: string, body: object) => api.patch(`/issues/${id}`, body),
 
-  children: (id: string) => client.get(`/issues/${id}/children`),
-  tree:     (id: string) => client.get(`/issues/${id}/tree`),
+  children: (id: string) => api.get(`/issues/${id}/children`),
+  tree:     (id: string) => api.get(`/issues/${id}/tree`),
 };
 
 // Trace
@@ -129,18 +129,18 @@ export const labelApi = {
     const p = new URLSearchParams();
     if (q)         p.append("q", q);
     if (projectId) p.append("project_id", projectId);
-    return client.get(`/labels${p.toString() ? "?" + p.toString() : ""}`);
+    return api.get(`/labels${p.toString() ? "?" + p.toString() : ""}`);
   },
   suggest: (q: string, projectId?: string) => {
     const p = new URLSearchParams({ q });
     if (projectId) p.append("project_id", projectId);
-    return client.get(`/labels/suggest?${p.toString()}`);
+    return api.get(`/labels/suggest?${p.toString()}`);
   },
   merge:   (fromLabel: string, toLabel: string, projectId?: string) =>
-    client.post("/labels/merge", { from_label: fromLabel, to_label: toLabel, project_id: projectId }),
+    api.post("/labels/merge", { from_label: fromLabel, to_label: toLabel, project_id: projectId }),
   delete:  (label: string, projectId?: string) => {
     const p = projectId ? `?project_id=${projectId}` : "";
-    return client.delete(`/labels/${encodeURIComponent(label)}${p}`);
+    return api.delete(`/labels/${encodeURIComponent(label)}${p}`);
   },
 };
 

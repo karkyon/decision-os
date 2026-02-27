@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Layout from "../components/Layout";
 import { projectApi, issueApi } from "../api/client";
 import { Issue, IssueStatus, Priority, STATUS_LABELS, PRIORITY_COLORS, Project } from "../types";
 
 const STATUS_ORDER: IssueStatus[] = ["open","doing","review","done","hold"];
 
 
+const ISSUE_TYPE_ICONS: Record<string, string> = {
+  epic: "🟣", story: "🔵", task: "⬜",
+};
 
 export default function IssueList() {
   const navigate = useNavigate();
@@ -16,7 +20,7 @@ export default function IssueList() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    projectApi.list().then((r: any) => {
+    projectApi.list().then(r => {
       setProjects(r.data);
       if (r.data.length > 0) setProjectId(r.data[0].id);
     });
@@ -25,13 +29,13 @@ export default function IssueList() {
   useEffect(() => {
     if (!projectId) return;
     setLoading(true);
-    issueApi.list({ project_id: projectId, ...(filterStatus ? { status: filterStatus } : {}) })
-      .then((r: any) => setIssues(r.data))
+    issueApi.list(projectId, filterStatus ? { status: filterStatus } : {})
+      .then(r => setIssues(r.data))
       .finally(() => setLoading(false));
   }, [projectId, filterStatus]);
 
   return (
-    <div style={{padding:"24px",color:"#e2e8f0"}}>
+    <Layout>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <h1 style={{ margin: 0, fontSize: "24px" }}>📋 課題一覧</h1>
         <button onClick={() => navigate("/inputs/new")} style={btnStyle("#3b82f6")}>
@@ -68,7 +72,7 @@ export default function IssueList() {
                   cursor: "pointer", display: "flex", gap: "16px", alignItems: "center",
                   borderLeft: `4px solid ${PRIORITY_COLORS[issue.priority as Priority]}` }}>
                 <div style={{ flex: 1 }}>
-                  <p style={{ margin: "0 0 4px", fontSize: "15px", fontWeight: "500" }}>{"⬜" ?? "⬜"} {issue.title}</p>
+                  <p style={{ margin: "0 0 4px", fontSize: "15px", fontWeight: "500" }}>{ISSUE_TYPE_ICONS[issue.issue_type ?? "task"] ?? "⬜"} {issue.title}</p>
                   <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>
                     {new Date(issue.created_at).toLocaleDateString("ja-JP")}
                   </p>
@@ -90,7 +94,7 @@ export default function IssueList() {
           </div>
         )
       }
-    </div>
+    </Layout>
   );
 }
 

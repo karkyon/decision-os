@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import Layout from "../components/Layout";
 import { searchApi } from "../api/client";
 
 type HitType = "issue" | "input" | "item" | "conversation";
@@ -108,7 +109,7 @@ export default function Search() {
   }
 
   return (
-    <div style={{padding:"24px",color:"#e2e8f0"}}>
+    <Layout>
       {/* 検索バー */}
       <div style={{ marginBottom: "24px" }}>
         <h1 style={{ margin: "0 0 16px", fontSize: "20px" }}>🔍 横断検索</h1>
@@ -248,7 +249,7 @@ export default function Search() {
           )}
         </>
       )}
-    </div>
+    </Layout>
   );
 }
 
