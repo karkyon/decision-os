@@ -17,6 +17,7 @@ export default function InputNew() {
   const [sourceType, setSourceType] = useState("email");
   const [rawText, setRawText] = useState("");
   const [step, setStep] = useState<1|2|3>(1);
+  const [_inputId, setInputId] = useState("");
   const [items, setItems] = useState<ItemWithAction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -35,6 +36,7 @@ export default function InputNew() {
     setLoading(true); setError("");
     try {
       const inpRes = await inputApi.create({ project_id: projectId, source_type: sourceType, raw_text: rawText });
+      setInputId(inpRes.data.id);
       const anlRes = await analyzeApi.analyze(inpRes.data.id);
       setItems(anlRes.data.map((item: Item) => ({
         ...item,

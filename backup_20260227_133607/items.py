@@ -1,6 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Optional
 from ....core.deps import get_db, get_current_user
 from ....models.item import Item
 from ....models.learning_log import LearningLog
@@ -8,20 +7,6 @@ from ....models.user import User
 from ....schemas.item import ItemUpdate, ItemResponse
 
 router = APIRouter(prefix="/items", tags=["items"])
-
-
-@router.get("", response_model=List[ItemResponse])
-def list_items(
-    input_id: Optional[str] = Query(None, description="INPUT IDで絞り込み"),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """ITEM一覧を取得。input_id が指定された場合はそのINPUTに属するITEMのみ返す。"""
-    q = db.query(Item)
-    if input_id:
-        q = q.filter(Item.input_id == input_id)
-    return q.order_by(Item.position).all()
-
 
 @router.patch("/{item_id}", response_model=ItemResponse)
 def update_item(
