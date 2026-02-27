@@ -13,7 +13,6 @@ class Action(Base):
     decided_by = Column(UUID(as_uuid=False), ForeignKey("users.id"))
     decision_reason = Column(Text)
     decided_at = Column(DateTime(timezone=True), server_default=func.now())
-    issue_id = Column(UUID(as_uuid=False), ForeignKey("issues.id", ondelete="SET NULL"), nullable=True)
 
     item = relationship("Item", back_populates="action")
     issue = relationship("Issue", back_populates="action", uselist=False)

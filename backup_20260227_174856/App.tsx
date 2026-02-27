@@ -5,8 +5,6 @@ import Dashboard from "./pages/Dashboard";
 import InputNew from "./pages/InputNew";
 import IssueList from "./pages/IssueList";
 import IssueDetail from "./pages/IssueDetail";
-import Search from './pages/Search';
-import Decisions from './pages/Decisions';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   return authStore.isLoggedIn() ? <>{children}</> : <Navigate to="/login" replace />;
@@ -19,9 +17,7 @@ export default function App() {
       <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/inputs/new" element={<PrivateRoute><InputNew /></PrivateRoute>} />
       <Route path="/issues" element={<PrivateRoute><IssueList /></PrivateRoute>} />
-      <Route path="/issues/:id" element={<PrivateRoute><IssueDetail />
-        <Route path="/search" element={<Search />
-        <Route path="/decisions" element={<Decisions />} />} /></PrivateRoute>} />
+      <Route path="/issues/:id" element={<PrivateRoute><IssueDetail /></PrivateRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

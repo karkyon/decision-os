@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
-import { issueApi, traceApi, conversationApi, decisionApi } from "../api/client";
+import { issueApi, traceApi, conversationApi } from "../api/client";
 import { STATUS_LABELS, PRIORITY_COLORS, type IssueStatus, type Priority } from "../types/index";
 
 interface Issue {
@@ -20,7 +20,7 @@ interface Comment {
   author_id?: string;
 }
 
-type TabType = "detail" | "trace" | "comments" | "decisions";
+type TabType = "detail" | "trace" | "comments";
 
 export default function IssueDetail() {
   const { id } = useParams<{ id: string }>();
@@ -28,7 +28,6 @@ export default function IssueDetail() {
   const [issue, setIssue] = useState<Issue | null>(null);
   const [trace, setTrace] = useState<TraceData | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [decisions, setDecisions] = useState<any[]>([]);
   const [tab, setTab] = useState<TabType>("detail");
   const [loading, setLoading] = useState(true);
   const [commentBody, setCommentBody] = useState("");
@@ -53,7 +52,6 @@ export default function IssueDetail() {
       issueApi.get(id).then(r => setIssue(r.data)),
       traceApi.get(id).then(r => setTrace(r.data)).catch(() => {}),
       conversationApi.list(id).then(r => setComments(r.data)).catch(() => {}),
-      decisionApi.list({ issue_id: id }).then(r => setDecisions(r.data)).catch(() => {}),
     ]).finally(() => setLoading(false));
   }, [id]);
 
@@ -167,7 +165,6 @@ export default function IssueDetail() {
           { key: "detail", label: "📋 詳細" },
           { key: "trace", label: "🔍 トレーサビリティ" },
           { key: "comments", label: `💬 コメント${comments.length > 0 ? ` (${comments.length})` : ""}` },
-          { key: "decisions", label: `📝 決定ログ${decisions.length > 0 ? ` (${decisions.length})` : ""}` },
         ] as { key: TabType; label: string }[]).map(({ key, label }) => (
           <button
             key={key} onClick={() => setTab(key)}
@@ -250,56 +247,7 @@ export default function IssueDetail() {
         </div>
       )}
 
-
-      {/* 決定ログタブ */}
-      {tab === "decisions" && (
-        <div style={{ background: "#1e293b", borderRadius: "12px", padding: "24px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-            <h3 style={{ margin: 0, fontSize: "16px" }}>📝 関連する決定ログ</h3>
-            <button
-              onClick={() => navigate(`/decisions?issue_id=${id}`)}
-              style={{
-                padding: "6px 16px", borderRadius: "6px", border: "none",
-                background: "#334155", color: "#94a3b8", cursor: "pointer", fontSize: "13px",
-              }}
-            >
-              ＋ 決定を追加
-            </button>
-          </div>
-          {decisions.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "40px", color: "#475569" }}>
-              <div style={{ fontSize: "32px", marginBottom: "12px" }}>📝</div>
-              <p style={{ margin: 0 }}>この課題に関連する決定ログがありません</p>
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {decisions.map((d: any) => (
-                <div key={d.id} style={{
-                  background: "#0f172a", borderRadius: "8px",
-                  padding: "14px 16px", borderLeft: "3px solid #8b5cf6",
-                }}>
-                  <p style={{ margin: "0 0 6px", fontSize: "14px", fontWeight: "600", color: "#e2e8f0" }}>
-                    {d.decision_text}
-                  </p>
-                  <p style={{ margin: "0 0 6px", fontSize: "13px", color: "#94a3b8", lineHeight: 1.5 }}>
-                    理由: {d.reason}
-                  </p>
-                  <div style={{ display: "flex", gap: "10px" }}>
-                    {d.decider && (
-                      <span style={{ fontSize: "11px", color: "#64748b" }}>👤 {d.decider.name}</span>
-                    )}
-                    <span style={{ fontSize: "11px", color: "#64748b" }}>
-                      🕐 {new Date(d.created_at).toLocaleString("ja-JP")}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* コメントタブ */
+      {/* コメントタブ */}
       {tab === "comments" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
           {/* コメント一覧 */}

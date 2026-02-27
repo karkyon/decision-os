@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from typing import Optional
 from ....core.deps import get_db, get_current_user
 from ....models.action import Action
 from ....models.item import Item
@@ -9,6 +10,47 @@ from ....models.user import User
 from ....schemas.action import ActionCreate, ActionResponse
 
 router = APIRouter(prefix="/actions", tags=["actions"])
+
+
+@router.get("/{action_id}")
+def get_action(
+    action_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    ACTION の詳細を返す。
+    紐づく Issue があれば issue 情報も含める（双方向リンク確認用）。
+    """
+    action = db.query(Action).filter(Action.id == action_id).first()
+    if not action:
+        raise HTTPException(status_code=404, detail="Action not found")
+
+    # 紐づく Issue を取得（action_id 経由 or issue_id 経由）
+    linked_issue = None
+    if hasattr(action, "issue_id") and action.issue_id:
+        linked_issue = db.query(Issue).filter(Issue.id == action.issue_id).first()
+    else:
+        # フォールバック: Issue.action_id から逆引き
+        linked_issue = db.query(Issue).filter(Issue.action_id == action_id).first()
+
+    result = {
+        "id": action.id,
+        "item_id": action.item_id,
+        "action_type": action.action_type,
+        "decision_reason": action.decision_reason,
+        "decided_by": action.decided_by,
+        "decided_at": action.decided_at,
+        "issue_id": getattr(action, "issue_id", None),
+        # 双方向リンク: 紐づく Issue のサマリー
+        "linked_issue": {
+            "id": linked_issue.id,
+            "title": linked_issue.title,
+            "status": linked_issue.status,
+            "priority": linked_issue.priority,
+        } if linked_issue else None,
+    }
+    return result
 
 
 @router.post("", response_model=ActionResponse, status_code=201)
@@ -35,20 +77,25 @@ def create_action(
     db.commit()
     db.refresh(action)
 
-    # CREATE_ISSUE の場合、自動で課題生成
-    # ※ item.input.project_id の遅延ロードを避け、Inputを明示的にクエリする
+    # CREATE_ISSUE の場合、自動で課題生成 + 双方向リンクをセット
     if payload.action_type == "CREATE_ISSUE":
         input_obj = db.query(Input).filter(Input.id == item.input_id).first()
         if input_obj:
             issue = Issue(
                 project_id=input_obj.project_id,
-                action_id=action.id,        # ← トレーサビリティの核心
+                action_id=action.id,          # Issue → Action（正引き）
                 title=f"[自動生成] {item.text[:100]}",
                 description=item.text,
                 priority="medium",
             )
             db.add(issue)
             db.commit()
+            db.refresh(issue)
+
+            # ★ 双方向リンク: Action → Issue をセット
+            if hasattr(action, "issue_id"):
+                action.issue_id = issue.id
+                db.commit()
 
     return action
 
@@ -59,21 +106,24 @@ def convert_action_to_issue(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    ACTION を ISSUE に変換する。
-    action_id を Issue に紐づけてトレーサビリティチェーンを保証する。
-    既にISSUEが存在する場合はそれを返す。
-    """
+    """ACTION を ISSUE に変換（既存なら返す）。双方向リンクも確立。"""
     action = db.query(Action).filter(Action.id == action_id).first()
     if not action:
         raise HTTPException(status_code=404, detail="Action not found")
 
-    # 既にこのACTIONから生成されたISSUEが存在するか確認
+    # 既存の ISSUE 確認（Issue.action_id or Action.issue_id）
     existing_issue = db.query(Issue).filter(Issue.action_id == action_id).first()
+    if not existing_issue and hasattr(action, "issue_id") and action.issue_id:
+        existing_issue = db.query(Issue).filter(Issue.id == action.issue_id).first()
+
     if existing_issue:
+        # 双方向リンクが未設定なら補完
+        if hasattr(action, "issue_id") and action.issue_id is None:
+            action.issue_id = existing_issue.id
+            db.commit()
         return existing_issue
 
-    # action → item → input → project_id を取得
+    # 新規 ISSUE 生成
     item = db.query(Item).filter(Item.id == action.item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Item not found for this action")
@@ -84,13 +134,18 @@ def convert_action_to_issue(
 
     issue = Issue(
         project_id=input_obj.project_id,
-        action_id=action_id,               # ← トレーサビリティの核心
-        title=f"[{action.action_type}] {item.text[:100]}",
+        action_id=action_id,                   # Issue → Action（正引き）
+        title=f"[課題化] {item.text[:100]}",
         description=item.text,
         priority="medium",
     )
     db.add(issue)
     db.commit()
     db.refresh(issue)
+
+    # ★ 双方向リンク: Action → Issue
+    if hasattr(action, "issue_id"):
+        action.issue_id = issue.id
+        db.commit()
 
     return issue

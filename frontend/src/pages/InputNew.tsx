@@ -1,45 +1,67 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
-import { projectApi, inputApi, analyzeApi, itemApi, actionApi } from "../api/client";
-import { Item, IntentCode, DomainCode, ActionType, INTENT_LABELS, DOMAIN_LABELS, ACTION_LABELS, Project } from "../types";
+import { inputApi, analyzeApi, itemApi, actionApi } from "../api/client";
+import {
+  INTENT_LABELS, DOMAIN_LABELS, ACTION_LABELS,
+  IntentCode, DomainCode, ActionType,
+} from "../types/index";
 
-const INTENTS: IntentCode[] = ["BUG","REQ","IMP","QST","MIS","FBK","INF","TSK"];
-const DOMAINS: DomainCode[] = ["UI","API","DB","AUTH","PERF","SEC","OPS","SPEC"];
-const ACTIONS: ActionType[] = ["CREATE_ISSUE","ANSWER","STORE","REJECT","HOLD","LINK_EXISTING"];
+const INTENT_OPTIONS = Object.entries(INTENT_LABELS) as [IntentCode, string][];
+const DOMAIN_OPTIONS = Object.entries(DOMAIN_LABELS) as [DomainCode, string][];
+const ACTION_OPTIONS = Object.entries(ACTION_LABELS) as [ActionType, string][];
 
-type ItemWithAction = Item & { selectedAction?: ActionType; reason?: string; actionSaved?: boolean };
+interface ItemWithAction {
+  id: string;
+  text: string;
+  intent_code: IntentCode;
+  domain_code: DomainCode;
+  confidence: number;
+  position: number;
+  selectedAction: ActionType;
+  reason: string;
+  // 編集用
+  isEditing: boolean;
+  editText: string;
+}
+
+const confidenceColor = (c: number) =>
+  c >= 0.75 ? "#22c55e" : c >= 0.5 ? "#f59e0b" : "#ef4444";
 
 export default function InputNew() {
   const navigate = useNavigate();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [projectId, setProjectId] = useState("");
+  const [step, setStep] = useState(1);
+  const [text, setText] = useState("");
   const [sourceType, setSourceType] = useState("email");
-  const [rawText, setRawText] = useState("");
-  const [step, setStep] = useState<1|2|3>(1);
   const [items, setItems] = useState<ItemWithAction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [createdIssueCount, setCreatedIssueCount] = useState(0);
+  const [inputId, setInputId] = useState<string | null>(null);
 
-  useEffect(() => {
-    projectApi.list().then(r => {
-      setProjects(r.data);
-      if (r.data.length > 0) setProjectId(r.data[0].id);
-    });
-  }, []);
-
-  // Step1: 原文登録 → 分解
+  // ─── STEP1: 原文登録 → 分解実行 ─────────────────────────────
   const handleAnalyze = async () => {
-    if (!rawText.trim()) { setError("原文を入力してください"); return; }
-    if (!projectId) { setError("プロジェクトを選択してください"); return; }
+    if (!text.trim()) { setError("テキストを入力してください"); return; }
     setLoading(true); setError("");
     try {
-      const inpRes = await inputApi.create({ project_id: projectId, source_type: sourceType, raw_text: rawText });
-      const anlRes = await analyzeApi.analyze(inpRes.data.id);
-      setItems(anlRes.data.map((item: Item) => ({
-        ...item,
-        selectedAction: item.intent_code === "BUG" ? "CREATE_ISSUE" :
-                        item.intent_code === "REQ" ? "HOLD" : "STORE",
+      // 1. INPUT 登録
+      const inpRes = await inputApi.create({ text, source_type: sourceType });
+      const newInputId: string = inpRes.data.id;
+      setInputId(newInputId);
+
+      // 2. 分解実行
+      const anaRes = await analyzeApi.analyze(newInputId);
+      const rawItems: any[] = anaRes.data;
+
+      setItems(rawItems.map((it: any) => ({
+        ...it,
+        // ★ BUG・REQ はデフォルト CREATE_ISSUE, それ以外は STORE
+        selectedAction: (it.intent_code === "BUG" || it.intent_code === "REQ")
+          ? "CREATE_ISSUE"
+          : "STORE",
+        reason: "",
+        isEditing: false,
+        editText: it.text,
       })));
       setStep(2);
     } catch (e: any) {
@@ -47,142 +69,363 @@ export default function InputNew() {
     } finally { setLoading(false); }
   };
 
-  // Step2: 分類修正
-  const updateItemField = (id: string, field: string, value: string) => {
-    setItems(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item));
+  // ─── STEP2: 分類変更 ──────────────────────────────────────────
+  const updateItemField = (id: string, field: keyof ItemWithAction, value: any) => {
+    setItems(prev => prev.map(it => it.id === id ? { ...it, [field]: value } : it));
   };
 
+  // テキスト編集確定（PATCH API）
+  const commitTextEdit = async (item: ItemWithAction) => {
+    try {
+      await itemApi.update(item.id, { text: item.editText });
+      setItems(prev => prev.map(it =>
+        it.id === item.id ? { ...it, text: it.editText, isEditing: false } : it
+      ));
+    } catch {
+      setError("テキスト更新に失敗しました");
+    }
+  };
+
+  // ITEM 削除（DELETE API）
+  const deleteItem = async (id: string) => {
+    if (!window.confirm("このITEMを削除しますか？")) return;
+    try {
+      await itemApi.delete(id);
+      setItems(prev => prev.filter(it => it.id !== id));
+    } catch {
+      setError("削除に失敗しました");
+    }
+  };
+
+  // 分類修正を保存（PATCH）
   const saveItemCorrection = async (item: ItemWithAction) => {
-    await itemApi.update(item.id, { intent_code: item.intent_code, domain_code: item.domain_code });
+    try {
+      await itemApi.update(item.id, {
+        intent_code: item.intent_code,
+        domain_code: item.domain_code,
+      });
+    } catch { /* silent */ }
   };
 
-  // Step3: ACTION確定
+  // ─── STEP3: ACTION 確定 ──────────────────────────────────────
   const handleSaveActions = async () => {
     setLoading(true); setError("");
+    let issueCount = 0;
     try {
       for (const item of items) {
-        if (item.selectedAction) {
-          await actionApi.create({
-            item_id: item.id,
-            action_type: item.selectedAction,
-            decision_reason: item.reason || "",
-          });
-        }
+        if (!item.selectedAction) continue;
+        const res = await actionApi.create({
+          item_id: item.id,
+          action_type: item.selectedAction,
+          decision_reason: item.reason || "",
+        });
+        if (item.selectedAction === "CREATE_ISSUE") issueCount++;
+        // 409 (Action already exists) は無視して続行
+        void res;
       }
+      setCreatedIssueCount(issueCount);
       setStep(3);
     } catch (e: any) {
-      setError(e.response?.data?.detail || "Action保存に失敗しました");
+      const status = e.response?.status;
+      if (status === 409) {
+        // 一部が重複登録済みでも続行
+        setCreatedIssueCount(issueCount);
+        setStep(3);
+      } else {
+        setError(e.response?.data?.detail || "Action保存に失敗しました");
+      }
     } finally { setLoading(false); }
   };
 
-  const confidenceColor = (c: number) =>
-    c >= 0.75 ? "#22c55e" : c >= 0.5 ? "#f59e0b" : "#ef4444";
-
+  // ─── Render ──────────────────────────────────────────────────
   return (
     <Layout>
       {/* ステップインジケーター */}
       <div style={{ display: "flex", gap: "8px", marginBottom: "24px", alignItems: "center" }}>
-        {["1. 原文入力", "2. 分類確認", "3. ACTION決定"].map((s, i) => (
+        {["1. 原文入力", "2. 分類確認・修正", "3. ACTION決定"].map((s, i) => (
           <div key={s} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div style={{ padding: "6px 16px", borderRadius: "20px", fontSize: "13px",
-              background: step === i+1 ? "#3b82f6" : step > i+1 ? "#22c55e" : "#334155",
-              color: "#fff" }}>{step > i+1 ? `✓ ${s}` : s}</div>
-            {i < 2 && <span style={{ color: "#475569" }}>→</span>}
+            <div style={{
+              padding: "6px 16px", borderRadius: "20px", fontSize: "13px",
+              background: step === i + 1 ? "#3b82f6" : step > i + 1 ? "#22c55e" : "#334155",
+              color: "#fff",
+            }}>
+              {step > i + 1 ? "✓ " : ""}{s}
+            </div>
+            {i < 2 && <span style={{ color: "#475569" }}>›</span>}
           </div>
         ))}
       </div>
 
-      {/* Step 1: 原文入力 */}
+      {error && (
+        <div style={{
+          background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "8px",
+          padding: "12px 16px", marginBottom: "16px", color: "#dc2626", fontSize: "14px",
+        }}>
+          ⚠️ {error}
+        </div>
+      )}
+
+      {/* ─── STEP 1 ─── */}
       {step === 1 && (
-        <div style={cardStyle}>
-          <h2 style={{ margin: "0 0 20px", fontSize: "18px" }}>📥 原文を入力</h2>
-          <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
-            <select value={projectId} onChange={e => setProjectId(e.target.value)} style={selectStyle}>
-              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-            <select value={sourceType} onChange={e => setSourceType(e.target.value)} style={selectStyle}>
-              {["email","voice","meeting","bug","other"].map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          </div>
-          <textarea value={rawText} onChange={e => setRawText(e.target.value)}
-            placeholder="メール本文・会話録音テキスト・会議メモ等を貼り付けてください..."
-            style={{ ...inputStyle, height: "200px", resize: "vertical" }} />
-          {error && <p style={{ color: "#f87171", margin: "8px 0" }}>{error}</p>}
-          <button onClick={handleAnalyze} disabled={loading} style={btnStyle("#3b82f6")}>
-            {loading ? "分解中..." : "🔍 解析する"}
+        <div style={{ background: "#1e293b", borderRadius: "12px", padding: "24px" }}>
+          <h2 style={{ margin: "0 0 20px", fontSize: "18px" }}>📥 原文入力</h2>
+
+          <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", color: "#94a3b8" }}>
+            ソース種別
+          </label>
+          <select
+            value={sourceType}
+            onChange={e => setSourceType(e.target.value)}
+            style={{
+              width: "200px", padding: "8px 12px", borderRadius: "8px",
+              background: "#0f172a", border: "1px solid #334155",
+              color: "#e2e8f0", fontSize: "14px", marginBottom: "16px",
+            }}
+          >
+            {["email", "chat", "meeting", "ticket", "other"].map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+
+          <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", color: "#94a3b8" }}>
+            原文テキスト
+          </label>
+          <textarea
+            value={text}
+            onChange={e => setText(e.target.value)}
+            placeholder="要望・不具合報告・ミーティングメモなどを貼り付けてください"
+            style={{
+              width: "100%", minHeight: "160px", padding: "12px",
+              background: "#0f172a", border: "1px solid #334155",
+              borderRadius: "8px", color: "#e2e8f0", fontSize: "14px",
+              resize: "vertical", boxSizing: "border-box",
+            }}
+          />
+
+          <button
+            onClick={handleAnalyze}
+            disabled={loading || !text.trim()}
+            style={{
+              marginTop: "16px", padding: "12px 32px", borderRadius: "8px",
+              background: loading || !text.trim() ? "#334155" : "#3b82f6",
+              color: "#fff", border: "none", cursor: loading || !text.trim() ? "not-allowed" : "pointer",
+              fontSize: "15px", fontWeight: "600",
+            }}
+          >
+            {loading ? "🔄 解析中..." : "🔍 解析する"}
           </button>
         </div>
       )}
 
-      {/* Step 2: 分類確認・修正 */}
+      {/* ─── STEP 2 ─── */}
       {step === 2 && (
-        <div style={cardStyle}>
-          <h2 style={{ margin: "0 0 8px", fontSize: "18px" }}>🔍 分解結果を確認・修正</h2>
-          <p style={{ color: "#64748b", margin: "0 0 20px", fontSize: "13px" }}>
-            AIの自動判定を確認し、必要に応じて修正してください
-          </p>
-          {items.map((item, idx) => (
-            <div key={item.id} style={{ background: "#0f172a", borderRadius: "8px",
-              padding: "16px", marginBottom: "12px",
-              borderLeft: `4px solid ${confidenceColor(item.confidence)}` }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                <span style={{ fontSize: "13px", color: "#64748b" }}>#{idx + 1}</span>
-                <span style={{ fontSize: "12px", color: confidenceColor(item.confidence) }}>
-                  信頼度: {(item.confidence * 100).toFixed(0)}%
-                  {item.confidence < 0.75 && " ⚠️要確認"}
-                </span>
-              </div>
-              <p style={{ margin: "0 0 12px", fontSize: "14px", color: "#e2e8f0" }}>{item.text}</p>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <select value={item.intent_code}
-                  onChange={e => { updateItemField(item.id, "intent_code", e.target.value); saveItemCorrection(item); }}
-                  style={selectStyle}>
-                  {INTENTS.map(i => <option key={i} value={i}>{INTENT_LABELS[i]}</option>)}
-                </select>
-                <select value={item.domain_code}
-                  onChange={e => { updateItemField(item.id, "domain_code", e.target.value); saveItemCorrection(item); }}
-                  style={selectStyle}>
-                  {DOMAINS.map(d => <option key={d} value={d}>{DOMAIN_LABELS[d]}</option>)}
-                </select>
-                <select value={item.selectedAction || "STORE"}
-                  onChange={e => updateItemField(item.id, "selectedAction", e.target.value)}
-                  style={{ ...selectStyle, background: "#1e293b" }}>
-                  {ACTIONS.map(a => <option key={a} value={a}>{ACTION_LABELS[a]}</option>)}
-                </select>
-              </div>
-              {(item.selectedAction === "REJECT" || item.selectedAction === "HOLD") && (
-                <input type="text" placeholder="理由を入力（必須）" value={item.reason || ""}
-                  onChange={e => updateItemField(item.id, "reason", e.target.value)}
-                  style={{ ...inputStyle, marginTop: "8px" }} />
-              )}
-            </div>
-          ))}
-          {error && <p style={{ color: "#f87171" }}>{error}</p>}
-          <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
-            <button onClick={() => setStep(1)} style={btnStyle("#334155")}>← 戻る</button>
-            <button onClick={handleSaveActions} disabled={loading} style={btnStyle("#3b82f6")}>
-              {loading ? "保存中..." : "✅ ACTION確定"}
+        <div style={{ background: "#1e293b", borderRadius: "12px", padding: "24px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <h2 style={{ margin: 0, fontSize: "18px" }}>
+              🧩 分解結果確認・修正
+              <span style={{ marginLeft: "8px", fontSize: "13px", color: "#94a3b8" }}>
+                {items.length}件
+              </span>
+            </h2>
+            <button
+              onClick={() => { setStep(1); setItems([]); setText(""); }}
+              style={{
+                padding: "6px 14px", borderRadius: "6px",
+                background: "#334155", color: "#94a3b8", border: "none", cursor: "pointer", fontSize: "13px",
+              }}
+            >
+              ← 原文に戻る
             </button>
           </div>
+
+          {items.length === 0 && (
+            <p style={{ color: "#64748b", textAlign: "center", padding: "32px 0" }}>
+              分解結果がありません
+            </p>
+          )}
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {items.map(item => (
+              <div
+                key={item.id}
+                style={{
+                  background: "#0f172a", borderRadius: "10px", padding: "16px",
+                  border: "1px solid #334155",
+                }}
+              >
+                {/* テキスト行 */}
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: "10px" }}>
+                  {item.isEditing ? (
+                    <>
+                      <textarea
+                        value={item.editText}
+                        onChange={e => updateItemField(item.id, "editText", e.target.value)}
+                        style={{
+                          flex: 1, padding: "6px 10px", borderRadius: "6px",
+                          background: "#1e293b", border: "1px solid #3b82f6",
+                          color: "#e2e8f0", fontSize: "14px", resize: "vertical", minHeight: "60px",
+                        }}
+                      />
+                      <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
+                        <button
+                          onClick={() => commitTextEdit(item)}
+                          style={btnStyle("#22c55e")}
+                          title="保存"
+                        >✓</button>
+                        <button
+                          onClick={() => updateItemField(item.id, "isEditing", false)}
+                          style={btnStyle("#475569")}
+                          title="キャンセル"
+                        >✕</button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p style={{
+                        flex: 1, margin: 0, color: "#e2e8f0", fontSize: "14px", lineHeight: "1.5",
+                      }}>
+                        {item.text}
+                      </p>
+                      <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
+                        <button
+                          onClick={() => updateItemField(item.id, "isEditing", true)}
+                          style={btnStyle("#3b82f6")}
+                          title="テキスト編集"
+                        >✏️</button>
+                        <button
+                          onClick={() => deleteItem(item.id)}
+                          style={btnStyle("#ef4444")}
+                          title="このITEMを削除"
+                        >🗑</button>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* ドロップダウン行 */}
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+                  {/* 信頼度 */}
+                  <span style={{
+                    fontSize: "12px", padding: "3px 8px", borderRadius: "4px",
+                    background: "#1e293b", color: confidenceColor(item.confidence),
+                    border: `1px solid ${confidenceColor(item.confidence)}`,
+                    flexShrink: 0,
+                  }}>
+                    {Math.round(item.confidence * 100)}%
+                  </span>
+
+                  {/* Intent */}
+                  <select
+                    value={item.intent_code}
+                    onChange={e => {
+                      updateItemField(item.id, "intent_code", e.target.value);
+                      saveItemCorrection({ ...item, intent_code: e.target.value as IntentCode });
+                    }}
+                    style={selectStyle}
+                  >
+                    {INTENT_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                  </select>
+
+                  {/* Domain */}
+                  <select
+                    value={item.domain_code}
+                    onChange={e => {
+                      updateItemField(item.id, "domain_code", e.target.value);
+                      saveItemCorrection({ ...item, domain_code: e.target.value as DomainCode });
+                    }}
+                    style={selectStyle}
+                  >
+                    {DOMAIN_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                  </select>
+
+                  {/* Action */}
+                  <select
+                    value={item.selectedAction}
+                    onChange={e => updateItemField(item.id, "selectedAction", e.target.value)}
+                    style={{
+                      ...selectStyle,
+                      background: item.selectedAction === "CREATE_ISSUE" ? "#1e3a5f" : "#1e293b",
+                      borderColor: item.selectedAction === "CREATE_ISSUE" ? "#3b82f6" : "#334155",
+                    }}
+                  >
+                    {ACTION_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                  </select>
+                </div>
+
+                {/* 判断理由 */}
+                <input
+                  value={item.reason}
+                  onChange={e => updateItemField(item.id, "reason", e.target.value)}
+                  placeholder="判断理由（任意）"
+                  style={{
+                    marginTop: "8px", width: "100%", padding: "6px 10px",
+                    background: "#1e293b", border: "1px solid #334155",
+                    borderRadius: "6px", color: "#e2e8f0", fontSize: "13px",
+                    boxSizing: "border-box",
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={handleSaveActions}
+            disabled={loading || items.length === 0}
+            style={{
+              marginTop: "20px", padding: "12px 32px", borderRadius: "8px",
+              background: loading || items.length === 0 ? "#334155" : "#3b82f6",
+              color: "#fff", border: "none",
+              cursor: loading || items.length === 0 ? "not-allowed" : "pointer",
+              fontSize: "15px", fontWeight: "600",
+            }}
+          >
+            {loading ? "🔄 保存中..." : "✅ ACTION確定・課題化する"}
+          </button>
         </div>
       )}
 
-      {/* Step 3: 完了 */}
+      {/* ─── STEP 3: 完了 ─── */}
       {step === 3 && (
-        <div style={{ ...cardStyle, textAlign: "center" }}>
-          <p style={{ fontSize: "48px", margin: "0 0 16px" }}>✅</p>
-          <h2 style={{ margin: "0 0 8px" }}>登録完了</h2>
-          <p style={{ color: "#94a3b8", margin: "0 0 24px" }}>
-            {items.filter(i => i.selectedAction === "CREATE_ISSUE").length}件の課題が自動作成されました
-          </p>
+        <div style={{
+          background: "#1e293b", borderRadius: "12px", padding: "40px",
+          textAlign: "center",
+        }}>
+          <div style={{ fontSize: "48px", marginBottom: "16px" }}>🎉</div>
+          <h2 style={{ margin: "0 0 12px", fontSize: "22px" }}>登録完了！</h2>
+
+          {createdIssueCount > 0 ? (
+            <p style={{ color: "#94a3b8", marginBottom: "24px" }}>
+              <span style={{ color: "#22c55e", fontWeight: "700", fontSize: "18px" }}>
+                {createdIssueCount}件の課題
+              </span>
+              が自動生成されました。
+            </p>
+          ) : (
+            <p style={{ color: "#94a3b8", marginBottom: "24px" }}>
+              ACTIONを保存しました。課題化されていないITEMは後から対応できます。
+            </p>
+          )}
+
           <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-            <button onClick={() => { setStep(1); setRawText(""); setItems([]); }} style={btnStyle("#334155")}>
-              続けて登録
+            <button
+              onClick={() => navigate("/issues")}
+              style={{
+                padding: "12px 28px", borderRadius: "8px",
+                background: "#3b82f6", color: "#fff", border: "none",
+                cursor: "pointer", fontSize: "15px", fontWeight: "600",
+              }}
+            >
+              📋 課題一覧を確認
             </button>
-            <button onClick={() => navigate("/issues")} style={btnStyle("#3b82f6")}>
-              課題一覧へ
+            <button
+              onClick={() => { setStep(1); setItems([]); setText(""); setError(""); setInputId(null); }}
+              style={{
+                padding: "12px 28px", borderRadius: "8px",
+                background: "#334155", color: "#e2e8f0", border: "none",
+                cursor: "pointer", fontSize: "15px",
+              }}
+            >
+              ＋ 新規登録
             </button>
           </div>
         </div>
@@ -191,19 +434,14 @@ export default function InputNew() {
   );
 }
 
-const cardStyle: React.CSSProperties = {
-  background: "#1e293b", borderRadius: "12px", padding: "24px", maxWidth: "900px"
-};
-const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "10px 12px", background: "#0f172a", color: "#f1f5f9",
-  border: "1px solid #334155", borderRadius: "8px", fontSize: "14px",
-  boxSizing: "border-box", fontFamily: "inherit",
-};
 const selectStyle: React.CSSProperties = {
-  padding: "8px 12px", background: "#334155", color: "#f1f5f9",
-  border: "none", borderRadius: "6px", fontSize: "13px", cursor: "pointer",
+  padding: "5px 10px", borderRadius: "6px",
+  background: "#1e293b", border: "1px solid #334155",
+  color: "#e2e8f0", fontSize: "13px", cursor: "pointer",
 };
+
 const btnStyle = (bg: string): React.CSSProperties => ({
-  padding: "10px 24px", background: bg, color: "#fff", border: "none",
-  borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: "600",
+  padding: "4px 8px", borderRadius: "6px",
+  background: bg, color: "#fff", border: "none",
+  cursor: "pointer", fontSize: "14px", lineHeight: "1",
 });

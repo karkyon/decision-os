@@ -68,3 +68,67 @@ def list_inputs(
     if project_id:
         query = query.filter(Input.project_id == project_id)
     return query.order_by(Input.created_at.desc()).offset(skip).limit(limit).all()
+
+
+@router.get("/{input_id}/trace")
+def trace_input_forward(
+    input_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    INPUT から前引きトレース: Input → Items → Actions → Issues の連鎖を返す。
+    「この原文がどの課題を生み出したか」を確認できる逆引き機能。
+    """
+    from ....models.item import Item
+    from ....models.action import Action
+    from ....models.issue import Issue
+
+    inp = db.query(Input).filter(Input.id == input_id).first()
+    if not inp:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Input not found")
+
+    items = db.query(Item).filter(Item.input_id == input_id).order_by(Item.position).all()
+
+    result = {
+        "input": {
+            "id": inp.id,
+            "source_type": inp.source_type,
+            "raw_text": inp.raw_text,
+            "created_at": str(inp.created_at),
+        },
+        "items": []
+    }
+
+    for item in items:
+        action = db.query(Action).filter(Action.item_id == item.id).first()
+        linked_issue = None
+        if action:
+            # 双方向: Action.issue_id または Issue.action_id から取得
+            if hasattr(action, "issue_id") and action.issue_id:
+                linked_issue = db.query(Issue).filter(Issue.id == action.issue_id).first()
+            else:
+                linked_issue = db.query(Issue).filter(Issue.action_id == action.id).first()
+
+        result["items"].append({
+            "id": item.id,
+            "text": item.text,
+            "intent_code": item.intent_code,
+            "domain_code": item.domain_code,
+            "confidence": item.confidence,
+            "action": {
+                "id": action.id,
+                "action_type": action.action_type,
+                "decision_reason": action.decision_reason,
+                "issue_id": getattr(action, "issue_id", None),
+            } if action else None,
+            "issue": {
+                "id": linked_issue.id,
+                "title": linked_issue.title,
+                "status": linked_issue.status,
+                "priority": linked_issue.priority,
+            } if linked_issue else None,
+        })
+
+    return result

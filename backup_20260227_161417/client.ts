@@ -42,7 +42,6 @@ export const inputApi = {
   create: (data: any) => client.post("/inputs", data),
   get: (id: string) => client.get(`/inputs/${id}`),
   list: (projectId: string) => client.get(`/inputs?project_id=${projectId}`),
-  trace: (inputId: string) => client.get(`/inputs/${inputId}/trace`),
 };
 
 // Analyze
@@ -53,12 +52,10 @@ export const analyzeApi = {
 // Items
 export const itemApi = {
   update: (id: string, data: any) => client.patch(`/items/${id}`, data),
-  delete: (id: string) => client.delete(`/items/${id}`),
 };
 
 // Actions
 export const actionApi = {
-  get: (id: string) => client.get(`/actions/${id}`),
   create: (data: any) => client.post("/actions", data),
 };
 
@@ -74,33 +71,4 @@ export const issueApi = {
 // Trace
 export const traceApi = {
   get: (issueId: string) => client.get(`/trace/${issueId}`),
-};
-
-// Conversations (コメント)
-export const conversationApi = {
-  list: (issueId: string) => client.get(`/conversations?issue_id=${issueId}`),
-  create: (data: { issue_id: string; body: string }) => client.post("/conversations", data),
-  update: (id: string, body: string) => client.patch(`/conversations/${id}`, { body }),
-  delete: (id: string) => client.delete(`/conversations/${id}`),
-};
-
-// Search（横断全文検索）
-export const searchApi = {
-  search: (params: { q: string; type?: string; limit?: number }) =>
-    client.get("/search", { params }),
-};
-
-// Decisions（決定ログ）
-export const decisionApi = {
-  list:   (params?: { project_id?: string; issue_id?: string; limit?: number }) =>
-    client.get("/decisions", { params }),
-  get:    (id: string) => client.get(`/decisions/${id}`),
-  create: (data: {
-    project_id: string;
-    decision_text: string;
-    reason: string;
-    related_issue_id?: string;
-    related_request_id?: string;
-  }) => client.post("/decisions", data),
-  delete: (id: string) => client.delete(`/decisions/${id}`),
 };

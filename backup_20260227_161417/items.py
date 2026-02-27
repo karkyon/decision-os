@@ -16,6 +16,7 @@ def list_items(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """ITEM一覧を取得。input_id が指定された場合はそのINPUTに属するITEMのみ返す。"""
     q = db.query(Item)
     if input_id:
         q = q.filter(Item.input_id == input_id)
@@ -33,6 +34,7 @@ def update_item(
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
 
+    # 学習ログ記録（変更があれば）
     if payload.intent_code and payload.intent_code != item.intent_code:
         log = LearningLog(
             item_id=item.id,
@@ -48,31 +50,9 @@ def update_item(
         item.intent_code = payload.intent_code
     if payload.domain_code:
         item.domain_code = payload.domain_code
-    if payload.text is not None:
+    if payload.text:
         item.text = payload.text
 
     db.commit()
     db.refresh(item)
     return item
-
-
-@router.delete("/{item_id}", status_code=204)
-def delete_item(
-    item_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """ITEMを削除する（分解結果の不要な行を削除）"""
-    item = db.query(Item).filter(Item.id == item_id).first()
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-
-    # 紐づくActionも削除（CASCADE前提でなければ手動で）
-    from ....models.action import Action
-    action = db.query(Action).filter(Action.item_id == item_id).first()
-    if action:
-        db.delete(action)
-
-    db.delete(item)
-    db.commit()
-    return None
