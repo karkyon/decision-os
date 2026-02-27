@@ -1,0 +1,416 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.3.2, pluggy-1.6.0 -- /home/karkyon/projects/decision-os/backend/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/karkyon/projects/decision-os/backend
+configfile: pytest.ini
+plugins: anyio-4.12.1, asyncio-0.23.8, timeout-2.4.0, cov-5.0.0
+asyncio: mode=Mode.AUTO
+collecting ... collected 49 items
+
+tests/test_actions.py::test_list_actions FAILED                          [  2%]
+tests/test_actions.py::test_create_action_reject FAILED                  [  4%]
+tests/test_actions.py::test_create_action_create_issue FAILED            [  6%]
+tests/test_actions.py::test_action_invalid_item PASSED                   [  8%]
+tests/test_auth.py::test_login_success PASSED                            [ 10%]
+tests/test_auth.py::test_login_wrong_password PASSED                     [ 12%]
+tests/test_auth.py::test_no_token_rejected PASSED                        [ 14%]
+tests/test_conversations.py::test_create_conversation PASSED             [ 16%]
+tests/test_conversations.py::test_list_conversations PASSED              [ 18%]
+tests/test_conversations.py::test_conversation_empty_body PASSED         [ 20%]
+tests/test_conversations.py::test_conversation_invalid_issue PASSED      [ 22%]
+tests/test_dashboard.py::test_dashboard_summary PASSED                   [ 24%]
+tests/test_dashboard.py::test_dashboard_with_project PASSED              [ 26%]
+tests/test_dashboard.py::test_dashboard_no_auth FAILED                   [ 28%]
+tests/test_decisions.py::test_create_decision PASSED                     [ 30%]
+tests/test_decisions.py::test_list_decisions PASSED                      [ 32%]
+tests/test_decisions.py::test_decision_empty_text PASSED                 [ 34%]
+tests/test_engine.py::test_analyze_bug PASSED                            [ 36%]
+tests/test_engine.py::test_analyze_request PASSED                        [ 38%]
+tests/test_engine.py::test_analyze_question PASSED                       [ 40%]
+tests/test_engine.py::test_confidence_range PASSED                       [ 42%]
+tests/test_health.py::test_health PASSED                                 [ 44%]
+tests/test_health.py::test_ping PASSED                                   [ 46%]
+tests/test_inputs.py::test_create_input PASSED                           [ 48%]
+tests/test_inputs.py::test_list_inputs PASSED                            [ 51%]
+tests/test_inputs.py::test_analyze_input PASSED                          [ 53%]
+tests/test_issues.py::test_list_issues PASSED                            [ 55%]
+tests/test_issues.py::test_create_issue PASSED                           [ 57%]
+tests/test_issues.py::test_issue_type_change PASSED                      [ 59%]
+tests/test_issues.py::test_filter_issues PASSED                          [ 61%]
+tests/test_issues.py::test_rbac_users_endpoint PASSED                    [ 63%]
+tests/test_items.py::test_list_items PASSED                              [ 65%]
+tests/test_items.py::test_get_item FAILED                                [ 67%]
+tests/test_items.py::test_item_not_found FAILED                          [ 69%]
+tests/test_labels.py::test_list_labels PASSED                            [ 71%]
+tests/test_labels.py::test_add_labels_to_issue PASSED                    [ 73%]
+tests/test_labels.py::test_suggest_labels PASSED                         [ 75%]
+tests/test_labels.py::test_label_merge PASSED                            [ 77%]
+tests/test_labels.py::test_label_delete PASSED                           [ 79%]
+tests/test_projects.py::test_list_projects PASSED                        [ 81%]
+tests/test_projects.py::test_create_project PASSED                       [ 83%]
+tests/test_search.py::test_search_basic PASSED                           [ 85%]
+tests/test_search.py::test_search_with_type PASSED                       [ 87%]
+tests/test_search.py::test_search_empty_query PASSED                     [ 89%]
+tests/test_search.py::test_search_issues PASSED                          [ 91%]
+tests/test_users.py::test_list_users PASSED                              [ 93%]
+tests/test_users.py::test_get_me FAILED                                  [ 95%]
+tests/test_users.py::test_update_me PASSED                               [ 97%]
+tests/test_users.py::test_no_auth_rejected FAILED                        [100%]
+
+=================================== FAILURES ===================================
+______________________________ test_list_actions _______________________________
+tests/test_actions.py:31: in test_list_actions
+    assert r.status_code in (200, 404)
+E   assert 405 in (200, 404)
+E    +  where 405 = <Response [405 Method Not Allowed]>.status_code
+__________________________ test_create_action_reject ___________________________
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+E   psycopg2.errors.UndefinedColumn: column actions.linked_issue_id does not exist
+E   LINE 1: ...decided_at, actions.issue_id AS actions_issue_id, actions.li...
+E                                                                ^
+
+The above exception was the direct cause of the following exception:
+tests/test_actions.py:40: in test_create_action_reject
+    r = await c.post("/api/v1/actions", headers=h,
+.venv/lib/python3.12/site-packages/httpx/_client.py:1905: in post
+    return await self.request(
+.venv/lib/python3.12/site-packages/httpx/_client.py:1585: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv/lib/python3.12/site-packages/httpx/_client.py:1674: in send
+    response = await self._send_handling_auth(
+.venv/lib/python3.12/site-packages/httpx/_client.py:1702: in _send_handling_auth
+    response = await self._send_handling_redirects(
+.venv/lib/python3.12/site-packages/httpx/_client.py:1739: in _send_handling_redirects
+    response = await self._send_single_request(request)
+.venv/lib/python3.12/site-packages/httpx/_client.py:1776: in _send_single_request
+    response = await transport.handle_async_request(request)
+.venv/lib/python3.12/site-packages/httpx/_transports/asgi.py:157: in handle_async_request
+    await self.app(scope, receive, send)
+.venv/lib/python3.12/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/middleware/errors.py:187: in __call__
+    raise exc
+.venv/lib/python3.12/site-packages/starlette/middleware/errors.py:165: in __call__
+    await self.app(scope, receive, _send)
+.venv/lib/python3.12/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:62: in wrapped_app
+    raise exc
+.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:51: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.12/site-packages/starlette/routing.py:715: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/routing.py:735: in app
+    await route.handle(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/routing.py:288: in handle
+    await self.app(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/routing.py:76: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:62: in wrapped_app
+    raise exc
+.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:51: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.12/site-packages/starlette/routing.py:73: in app
+    response = await f(request)
+.venv/lib/python3.12/site-packages/fastapi/routing.py:301: in app
+    raw_response = await run_endpoint_function(
+.venv/lib/python3.12/site-packages/fastapi/routing.py:214: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+.venv/lib/python3.12/site-packages/starlette/concurrency.py:39: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func, *args)
+.venv/lib/python3.12/site-packages/anyio/to_thread.py:63: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:2502: in run_sync_in_worker_thread
+    return await future
+.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:986: in run
+    result = context.run(func, *args)
+app/api/v1/routers/actions.py:66: in create_action
+    existing = db.query(Action).filter(Action.item_id == payload.item_id).first()
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/query.py:2728: in first
+    return self.limit(1)._iter().first()  # type: ignore
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/query.py:2827: in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2351: in execute
+    return self._execute_internal(
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2236: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/context.py:293: in orm_execute_statement
+    result = conn.execute(
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1418: in execute
+    return meth(
+.venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py:515: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1640: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:2353: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column actions.linked_issue_id does not exist
+E   LINE 1: ...decided_at, actions.issue_id AS actions_issue_id, actions.li...
+E                                                                ^
+E   
+E   [SQL: SELECT actions.id AS actions_id, actions.item_id AS actions_item_id, actions.action_type AS actions_action_type, actions.decided_by AS actions_decided_by, actions.decision_reason AS actions_decision_reason, actions.decided_at AS actions_decided_at, actions.issue_id AS actions_issue_id, actions.linked_issue_id AS actions_linked_issue_id 
+E   FROM actions 
+E   WHERE actions.item_id = %(item_id_1)s::UUID 
+E    LIMIT %(param_1)s]
+E   [parameters: {'item_id_1': 'f2c7797c-13cb-4b48-b698-1c3368914da3', 'param_1': 1}]
+E   (Background on this error at: https://sqlalche.me/e/20/f405)
+_______________________ test_create_action_create_issue ________________________
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+E   psycopg2.errors.UndefinedColumn: column actions.linked_issue_id does not exist
+E   LINE 1: ...decided_at, actions.issue_id AS actions_issue_id, actions.li...
+E                                                                ^
+
+The above exception was the direct cause of the following exception:
+tests/test_actions.py:51: in test_create_action_create_issue
+    r = await c.post("/api/v1/actions", headers=h,
+.venv/lib/python3.12/site-packages/httpx/_client.py:1905: in post
+    return await self.request(
+.venv/lib/python3.12/site-packages/httpx/_client.py:1585: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv/lib/python3.12/site-packages/httpx/_client.py:1674: in send
+    response = await self._send_handling_auth(
+.venv/lib/python3.12/site-packages/httpx/_client.py:1702: in _send_handling_auth
+    response = await self._send_handling_redirects(
+.venv/lib/python3.12/site-packages/httpx/_client.py:1739: in _send_handling_redirects
+    response = await self._send_single_request(request)
+.venv/lib/python3.12/site-packages/httpx/_client.py:1776: in _send_single_request
+    response = await transport.handle_async_request(request)
+.venv/lib/python3.12/site-packages/httpx/_transports/asgi.py:157: in handle_async_request
+    await self.app(scope, receive, send)
+.venv/lib/python3.12/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/middleware/errors.py:187: in __call__
+    raise exc
+.venv/lib/python3.12/site-packages/starlette/middleware/errors.py:165: in __call__
+    await self.app(scope, receive, _send)
+.venv/lib/python3.12/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:62: in wrapped_app
+    raise exc
+.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:51: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.12/site-packages/starlette/routing.py:715: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/routing.py:735: in app
+    await route.handle(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/routing.py:288: in handle
+    await self.app(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/routing.py:76: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:62: in wrapped_app
+    raise exc
+.venv/lib/python3.12/site-packages/starlette/_exception_handler.py:51: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.12/site-packages/starlette/routing.py:73: in app
+    response = await f(request)
+.venv/lib/python3.12/site-packages/fastapi/routing.py:301: in app
+    raw_response = await run_endpoint_function(
+.venv/lib/python3.12/site-packages/fastapi/routing.py:214: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+.venv/lib/python3.12/site-packages/starlette/concurrency.py:39: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func, *args)
+.venv/lib/python3.12/site-packages/anyio/to_thread.py:63: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:2502: in run_sync_in_worker_thread
+    return await future
+.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py:986: in run
+    result = context.run(func, *args)
+app/api/v1/routers/actions.py:66: in create_action
+    existing = db.query(Action).filter(Action.item_id == payload.item_id).first()
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/query.py:2728: in first
+    return self.limit(1)._iter().first()  # type: ignore
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/query.py:2827: in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2351: in execute
+    return self._execute_internal(
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2236: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+.venv/lib/python3.12/site-packages/sqlalchemy/orm/context.py:293: in orm_execute_statement
+    result = conn.execute(
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1418: in execute
+    return meth(
+.venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py:515: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1640: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:2353: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column actions.linked_issue_id does not exist
+E   LINE 1: ...decided_at, actions.issue_id AS actions_issue_id, actions.li...
+E                                                                ^
+E   
+E   [SQL: SELECT actions.id AS actions_id, actions.item_id AS actions_item_id, actions.action_type AS actions_action_type, actions.decided_by AS actions_decided_by, actions.decision_reason AS actions_decision_reason, actions.decided_at AS actions_decided_at, actions.issue_id AS actions_issue_id, actions.linked_issue_id AS actions_linked_issue_id 
+E   FROM actions 
+E   WHERE actions.item_id = %(item_id_1)s::UUID 
+E    LIMIT %(param_1)s]
+E   [parameters: {'item_id_1': '98dde819-4afc-404d-a483-0fe971a88aaf', 'param_1': 1}]
+E   (Background on this error at: https://sqlalche.me/e/20/f405)
+____________________________ test_dashboard_no_auth ____________________________
+tests/test_dashboard.py:35: in test_dashboard_no_auth
+    assert r.status_code == 401
+E   assert 404 == 401
+E    +  where 404 = <Response [404 Not Found]>.status_code
+________________________________ test_get_item _________________________________
+tests/test_items.py:39: in test_get_item
+    assert r.status_code in (200, 404)
+E   assert 405 in (200, 404)
+E    +  where 405 = <Response [405 Method Not Allowed]>.status_code
+_____________________________ test_item_not_found ______________________________
+tests/test_items.py:46: in test_item_not_found
+    assert r.status_code == 404
+E   assert 405 == 404
+E    +  where 405 = <Response [405 Method Not Allowed]>.status_code
+_________________________________ test_get_me __________________________________
+tests/test_users.py:26: in test_get_me
+    assert r.json().get("email") == "demo@example.com"
+E   AssertionError: assert None == 'demo@example.com'
+E    +  where None = <built-in method get of dict object at 0x7af0e141a400>('email')
+E    +    where <built-in method get of dict object at 0x7af0e141a400> = {'message': 'use /auth/me endpoint'}.get
+E    +      where {'message': 'use /auth/me endpoint'} = json()
+E    +        where json = <Response [200 OK]>.json
+____________________________ test_no_auth_rejected _____________________________
+tests/test_users.py:40: in test_no_auth_rejected
+    assert r.status_code == 401
+E   assert 200 == 401
+E    +  where 200 = <Response [200 OK]>.status_code
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/pydantic/_internal/_config.py:291: 10 warnings
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/pydantic/_internal/_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.8/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+app/db/session.py:8
+  /home/karkyon/projects/decision-os/backend/app/db/session.py:8: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+tests/test_actions.py: 4 warnings
+tests/test_auth.py: 1 warning
+tests/test_conversations.py: 4 warnings
+tests/test_dashboard.py: 2 warnings
+tests/test_decisions.py: 3 warnings
+tests/test_inputs.py: 3 warnings
+tests/test_issues.py: 5 warnings
+tests/test_items.py: 3 warnings
+tests/test_labels.py: 5 warnings
+tests/test_projects.py: 2 warnings
+tests/test_search.py: 4 warnings
+tests/test_users.py: 3 warnings
+  /home/karkyon/projects/decision-os/backend/app/core/security.py:17: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+
+tests/test_actions.py: 9 warnings
+tests/test_conversations.py: 11 warnings
+tests/test_dashboard.py: 1 warning
+tests/test_decisions.py: 7 warnings
+tests/test_inputs.py: 8 warnings
+tests/test_issues.py: 7 warnings
+tests/test_items.py: 4 warnings
+tests/test_labels.py: 8 warnings
+tests/test_projects.py: 2 warnings
+tests/test_search.py: 4 warnings
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/jose/jwt.py:311: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = timegm(datetime.utcnow().utctimetuple())
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform linux, python 3.12.3-final-0 -----------
+Name                                  Stmts   Miss  Cover   Missing
+-------------------------------------------------------------------
+app/api/v1/api.py                        23      0   100%
+app/api/v1/routers/__init__.py            0      0   100%
+app/api/v1/routers/actions.py            72     51    29%   25-53, 67-100, 110-151
+app/api/v1/routers/analyze.py            65      6    91%   25, 30, 37, 87, 95, 97
+app/api/v1/routers/auth.py               28     10    64%   12-25, 38
+app/api/v1/routers/conversations.py      56     23    59%   22, 76-97, 107-115
+app/api/v1/routers/dashboard.py          32     21    34%   20-60
+app/api/v1/routers/decisions.py          48     15    69%   29, 39-45, 58, 63, 92-99
+app/api/v1/routers/inputs.py             56     26    54%   21, 26-28, 50-56, 83-134
+app/api/v1/routers/issues.py            112     43    62%   46, 55-56, 60, 64, 68-72, 74-80, 84-85, 94-97, 103, 105-111, 113, 171-174, 186, 234-235, 245-257
+app/api/v1/routers/items.py              45     27    40%   21, 32-56, 66-78
+app/api/v1/routers/labels.py             68     28    59%   23-25, 59, 61, 101, 120-143, 158, 162-165
+app/api/v1/routers/projects.py           28      0   100%
+app/api/v1/routers/search.py             77      4    95%   42, 45, 70, 149
+app/api/v1/routers/trace.py              29     18    38%   24-80
+app/api/v1/routers/users.py              60     34    43%   32-49, 71-76, 87-108
+app/api/v1/routers/ws.py                 35     23    34%   18-22, 31-55, 61
+app/core/config.py                       15      0   100%
+app/core/deps.py                         42     13    69%   25, 29, 37-44, 47, 50, 53, 56, 59, 62
+app/core/notifier.py                     58     40    31%   25-33, 36-40, 44, 48-57, 61-76, 88
+app/core/security.py                     20      3    85%   13, 24-25
+app/db/session.py                        12      0   100%
+app/main.py                              13      0   100%
+app/models/__init__.py                   13      0   100%
+app/models/action.py                     18      0   100%
+app/models/audit_log.py                  13      0   100%
+app/models/base.py                        8      0   100%
+app/models/conversation.py               14      0   100%
+app/models/decision.py                   16      0   100%
+app/models/input.py                      19      0   100%
+app/models/interpretation.py             14      0   100%
+app/models/issue.py                      26      0   100%
+app/models/item.py                       18      0   100%
+app/models/learning_log.py               13      0   100%
+app/models/project.py                    14      0   100%
+app/models/user.py                       15      0   100%
+app/schemas/__init__.py                   0      0   100%
+app/schemas/action.py                    15      0   100%
+app/schemas/auth.py                      15      0   100%
+app/schemas/conversation.py              24      0   100%
+app/schemas/decision.py                  27      0   100%
+app/schemas/input.py                     29      1    97%   19
+app/schemas/issue.py                     34     34     0%   1-38
+app/schemas/item.py                      19      0   100%
+engine/__init__.py                        1      0   100%
+engine/classifier.py                     89     26    71%   256-258, 278-279, 299-300, 323-327, 341-343, 348-369
+engine/main.py                           20      3    85%   36-38
+engine/normalizer.py                     12      1    92%   24
+engine/scorer.py                         27      3    89%   45, 76, 81
+engine/segmenter.py                      44     11    75%   13, 22, 32, 34-35, 52-57
+-------------------------------------------------------------------
+TOTAL                                  1551    464    70%
+Coverage HTML written to dir htmlcov
+Coverage JSON written to file .coverage.json
+
+=========================== short test summary info ============================
+FAILED tests/test_actions.py::test_list_actions - assert 405 in (200, 404)
+FAILED tests/test_actions.py::test_create_action_reject - sqlalchemy.exc.Prog...
+FAILED tests/test_actions.py::test_create_action_create_issue - sqlalchemy.ex...
+FAILED tests/test_dashboard.py::test_dashboard_no_auth - assert 404 == 401
+FAILED tests/test_items.py::test_get_item - assert 405 in (200, 404)
+FAILED tests/test_items.py::test_item_not_found - assert 405 == 404
+FAILED tests/test_users.py::test_get_me - AssertionError: assert None == 'dem...
+FAILED tests/test_users.py::test_no_auth_rejected - assert 200 == 401
+================= 8 failed, 41 passed, 112 warnings in 15.43s ==================

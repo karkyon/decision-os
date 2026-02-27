@@ -26,5 +26,5 @@ class Issue(Base):
     project = relationship("Project", back_populates="issues")
     action = relationship("Action", foreign_keys="[Action.issue_id]", back_populates="issue", uselist=False)
     assignee = relationship("User", back_populates="issues_assigned", foreign_keys=[assignee_id])
-    decisions = relationship("Decision", back_populates="issue")
+    decisions = relationship("Decision", back_populates="issue", foreign_keys="[Decision.related_issue_id]")
     conversations = relationship("Conversation", back_populates="issue")

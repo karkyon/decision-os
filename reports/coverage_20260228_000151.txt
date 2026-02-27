@@ -1,0 +1,167 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.3.2, pluggy-1.6.0 -- /home/karkyon/projects/decision-os/backend/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/karkyon/projects/decision-os/backend
+configfile: pytest.ini
+plugins: anyio-4.12.1, asyncio-0.23.8, timeout-2.4.0, cov-5.0.0
+asyncio: mode=Mode.AUTO
+collecting ... collected 51 items
+
+tests/test_actions.py::test_create_action_reject PASSED                  [  1%]
+tests/test_actions.py::test_create_action_create_issue PASSED            [  3%]
+tests/test_actions.py::test_create_action_answer PASSED                  [  5%]
+tests/test_actions.py::test_action_invalid_item PASSED                   [  7%]
+tests/test_actions.py::test_get_action_by_item PASSED                    [  9%]
+tests/test_auth.py::test_login_success PASSED                            [ 11%]
+tests/test_auth.py::test_login_wrong_password PASSED                     [ 13%]
+tests/test_auth.py::test_no_token_rejected PASSED                        [ 15%]
+tests/test_conversations.py::test_create_conversation PASSED             [ 17%]
+tests/test_conversations.py::test_list_conversations PASSED              [ 19%]
+tests/test_conversations.py::test_conversation_empty_body PASSED         [ 21%]
+tests/test_conversations.py::test_conversation_invalid_issue PASSED      [ 23%]
+tests/test_dashboard.py::test_dashboard_summary PASSED                   [ 25%]
+tests/test_dashboard.py::test_dashboard_with_project PASSED              [ 27%]
+tests/test_dashboard.py::test_dashboard_no_auth PASSED                   [ 29%]
+tests/test_dashboard.py::test_dashboard_stats_structure PASSED           [ 31%]
+tests/test_decisions.py::test_create_decision PASSED                     [ 33%]
+tests/test_decisions.py::test_list_decisions PASSED                      [ 35%]
+tests/test_decisions.py::test_decision_empty_text PASSED                 [ 37%]
+tests/test_engine.py::test_analyze_bug PASSED                            [ 39%]
+tests/test_engine.py::test_analyze_request PASSED                        [ 41%]
+tests/test_engine.py::test_analyze_question PASSED                       [ 43%]
+tests/test_engine.py::test_confidence_range PASSED                       [ 45%]
+tests/test_health.py::test_health PASSED                                 [ 47%]
+tests/test_health.py::test_ping PASSED                                   [ 49%]
+tests/test_inputs.py::test_create_input PASSED                           [ 50%]
+tests/test_inputs.py::test_list_inputs PASSED                            [ 52%]
+tests/test_inputs.py::test_analyze_input PASSED                          [ 54%]
+tests/test_issues.py::test_list_issues PASSED                            [ 56%]
+tests/test_issues.py::test_create_issue PASSED                           [ 58%]
+tests/test_issues.py::test_issue_type_change PASSED                      [ 60%]
+tests/test_issues.py::test_filter_issues PASSED                          [ 62%]
+tests/test_issues.py::test_rbac_users_endpoint PASSED                    [ 64%]
+tests/test_items.py::test_list_items_by_input PASSED                     [ 66%]
+tests/test_items.py::test_list_items_no_filter PASSED                    [ 68%]
+tests/test_items.py::test_items_created_by_analyze PASSED                [ 70%]
+tests/test_labels.py::test_list_labels PASSED                            [ 72%]
+tests/test_labels.py::test_add_labels_to_issue PASSED                    [ 74%]
+tests/test_labels.py::test_suggest_labels PASSED                         [ 76%]
+tests/test_labels.py::test_label_merge PASSED                            [ 78%]
+tests/test_labels.py::test_label_delete PASSED                           [ 80%]
+tests/test_projects.py::test_list_projects PASSED                        [ 82%]
+tests/test_projects.py::test_create_project PASSED                       [ 84%]
+tests/test_search.py::test_search_basic PASSED                           [ 86%]
+tests/test_search.py::test_search_with_type PASSED                       [ 88%]
+tests/test_search.py::test_search_empty_query PASSED                     [ 90%]
+tests/test_search.py::test_search_issues PASSED                          [ 92%]
+tests/test_users.py::test_list_users PASSED                              [ 94%]
+tests/test_users.py::test_get_auth_me FAILED                             [ 96%]
+tests/test_users.py::test_update_user_profile PASSED                     [ 98%]
+tests/test_users.py::test_get_specific_user SKIPPED (users一覧取得失敗)  [100%]
+
+=================================== FAILURES ===================================
+/home/karkyon/projects/decision-os/backend/tests/test_users.py:28: AssertionError: assert None == 'demo@example.com'
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/pydantic/_internal/_config.py:291: 10 warnings
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/pydantic/_internal/_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.8/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+app/db/session.py:8
+  /home/karkyon/projects/decision-os/backend/app/db/session.py:8: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+tests/test_actions.py: 5 warnings
+tests/test_auth.py: 1 warning
+tests/test_conversations.py: 4 warnings
+tests/test_dashboard.py: 3 warnings
+tests/test_decisions.py: 3 warnings
+tests/test_inputs.py: 3 warnings
+tests/test_issues.py: 5 warnings
+tests/test_items.py: 3 warnings
+tests/test_labels.py: 5 warnings
+tests/test_projects.py: 2 warnings
+tests/test_search.py: 4 warnings
+tests/test_users.py: 4 warnings
+  /home/karkyon/projects/decision-os/backend/app/core/security.py:17: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+
+tests/test_actions.py: 18 warnings
+tests/test_conversations.py: 11 warnings
+tests/test_dashboard.py: 1 warning
+tests/test_decisions.py: 7 warnings
+tests/test_inputs.py: 8 warnings
+tests/test_issues.py: 7 warnings
+tests/test_items.py: 8 warnings
+tests/test_labels.py: 8 warnings
+tests/test_projects.py: 2 warnings
+tests/test_search.py: 4 warnings
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/jose/jwt.py:311: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = timegm(datetime.utcnow().utctimetuple())
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform linux, python 3.12.3-final-0 -----------
+Name                                  Stmts   Miss  Cover   Missing
+-------------------------------------------------------------------
+app/api/v1/api.py                        23      0   100%
+app/api/v1/routers/__init__.py            0      0   100%
+app/api/v1/routers/actions.py            72     32    56%   30-53, 68, 110-151
+app/api/v1/routers/analyze.py            65      6    91%   25, 30, 37, 87, 95, 97
+app/api/v1/routers/auth.py               28      9    68%   12-25
+app/api/v1/routers/conversations.py      56     23    59%   22, 76-97, 107-115
+app/api/v1/routers/dashboard.py          32     21    34%   20-60
+app/api/v1/routers/decisions.py          48     15    69%   29, 39-45, 58, 63, 92-99
+app/api/v1/routers/inputs.py             56     26    54%   21, 26-28, 50-56, 83-134
+app/api/v1/routers/issues.py            112     43    62%   46, 55-56, 60, 64, 68-72, 74-80, 84-85, 94-97, 103, 105-111, 113, 171-174, 186, 234-235, 245-257
+app/api/v1/routers/items.py              45     26    42%   32-56, 66-78
+app/api/v1/routers/labels.py             68     28    59%   23-25, 59, 61, 101, 120-143, 158, 162-165
+app/api/v1/routers/projects.py           28      0   100%
+app/api/v1/routers/search.py             77      4    95%   42, 45, 70, 149
+app/api/v1/routers/trace.py              29     18    38%   24-80
+app/api/v1/routers/users.py              60     35    42%   32-49, 60, 71-76, 87-108
+app/api/v1/routers/ws.py                 35     23    34%   18-22, 31-55, 61
+app/core/config.py                       15      0   100%
+app/core/deps.py                         42     13    69%   25, 29, 37-44, 47, 50, 53, 56, 59, 62
+app/core/notifier.py                     58     40    31%   25-33, 36-40, 44, 48-57, 61-76, 88
+app/core/security.py                     20      3    85%   13, 24-25
+app/db/session.py                        12      0   100%
+app/main.py                              13      0   100%
+app/models/__init__.py                   13      0   100%
+app/models/action.py                     18      0   100%
+app/models/audit_log.py                  13      0   100%
+app/models/base.py                        8      0   100%
+app/models/conversation.py               14      0   100%
+app/models/decision.py                   16      0   100%
+app/models/input.py                      19      0   100%
+app/models/interpretation.py             14      0   100%
+app/models/issue.py                      26      0   100%
+app/models/item.py                       18      0   100%
+app/models/learning_log.py               13      0   100%
+app/models/project.py                    14      0   100%
+app/models/user.py                       15      0   100%
+app/schemas/__init__.py                   0      0   100%
+app/schemas/action.py                    15      0   100%
+app/schemas/auth.py                      15      0   100%
+app/schemas/conversation.py              24      0   100%
+app/schemas/decision.py                  27      0   100%
+app/schemas/input.py                     29      1    97%   19
+app/schemas/issue.py                     34     34     0%   1-38
+app/schemas/item.py                      19      0   100%
+engine/__init__.py                        1      0   100%
+engine/classifier.py                     89     26    71%   256-258, 278-279, 299-300, 323-327, 341-343, 348-369
+engine/main.py                           20      3    85%   36-38
+engine/normalizer.py                     12      1    92%   24
+engine/scorer.py                         27      3    89%   45, 76, 81
+engine/segmenter.py                      44     11    75%   13, 22, 32, 34-35, 52-57
+-------------------------------------------------------------------
+TOTAL                                  1551    444    71%
+Coverage HTML written to dir htmlcov
+Coverage JSON written to file .coverage.json
+
+=========================== short test summary info ============================
+FAILED tests/test_users.py::test_get_auth_me - AssertionError: assert None ==...
+============ 1 failed, 49 passed, 1 skipped, 128 warnings in 13.02s ============

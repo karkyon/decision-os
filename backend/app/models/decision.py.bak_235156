@@ -7,13 +7,13 @@ class Decision(Base):
     __tablename__ = "decisions"
 
     id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
-    project_id = Column(UUID(as_uuid=False), ForeignKey("projects.id"), nullable=False)
-    decision_text = Column(Text, nullable=False)
-    reason = Column(Text, nullable=False)
+    issue_id = Column(UUID(as_uuid=False), ForeignKey("issues.id"))
     decided_by = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
-    related_request_id = Column(UUID(as_uuid=False), ForeignKey("inputs.id"), nullable=True)
-    related_issue_id = Column(UUID(as_uuid=False), ForeignKey("issues.id"), nullable=True)
+    change_type = Column(String(30), nullable=False)  # spec_change/status_change/priority_change/etc
+    before_value = Column(Text)
+    after_value = Column(Text)
+    reason = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    issue = relationship("Issue", back_populates="decisions", foreign_keys=[related_issue_id])
+    issue = relationship("Issue", back_populates="decisions")
     decider = relationship("User", foreign_keys=[decided_by])
