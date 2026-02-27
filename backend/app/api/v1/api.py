@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from .routers import auth, inputs, analyze, items, actions, issues, trace, projects
+from .routers.dashboard import router as dashboard_router
 
 api_router = APIRouter()
 api_router.include_router(auth.router)
@@ -10,3 +11,4 @@ api_router.include_router(items.router)
 api_router.include_router(actions.router)
 api_router.include_router(issues.router)
 api_router.include_router(trace.router)
+api_router.include_router(dashboard_router)
