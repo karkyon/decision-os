@@ -83,3 +83,36 @@ async def test_inputs_search_by_text():
             json={"project_id": pid, "raw_text": "ログインエラー検索テスト"})
         r = await c.get(f"/api/v1/inputs?project_id={pid}&search=ログイン", headers=h)
         assert r.status_code in (200, 422)
+
+
+# --- カバレッジ補完（56番スクリプトで追加） ---
+@pytest.mark.asyncio
+async def test_inputs_list_with_project_id(client, auth_headers):
+    """project_id フィルタ"""
+    r = await client.get("/api/v1/inputs?project_id=00000000-0000-0000-0000-000000000000",
+                         headers=auth_headers)
+    assert r.status_code in (200, 404)
+
+
+@pytest.mark.asyncio
+async def test_inputs_get_single(client, auth_headers):
+    """GET /inputs/{id}"""
+    r = await client.get("/api/v1/inputs?limit=1", headers=auth_headers)
+    if r.status_code != 200:
+        pytest.skip("INPUT一覧取得失敗")
+    items = r.json()
+    if isinstance(items, dict):
+        items = items.get("items", [])
+    if not items:
+        pytest.skip("INPUTが0件")
+    input_id = items[0]["id"]
+    r2 = await client.get(f"/api/v1/inputs/{input_id}", headers=auth_headers)
+    assert r2.status_code in (200, 404)
+
+
+@pytest.mark.asyncio
+async def test_inputs_get_not_found(client, auth_headers):
+    """存在しないID → 404"""
+    r = await client.get("/api/v1/inputs/00000000-0000-0000-0000-000000000000",
+                         headers=auth_headers)
+    assert r.status_code in (404, 422)

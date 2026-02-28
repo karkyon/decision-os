@@ -1,0 +1,341 @@
+.........sEEEEEEEF............EEEEEEE.......EEFE..ssF.F..EEEEF.......... [ 46%]
+.......................................................EEEEF..........s. [ 93%]
+..EEFE..Fs/home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/coverage/sqlitedb.py:122: RuntimeWarning: coroutine 'AsyncClient.get' was never awaited
+  return self.con.execute(sql, parameters)  # type: ignore[arg-type]
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+/home/karkyon/.pyenv/versions/3.12.3/lib/python3.12/ast.py:52: RuntimeWarning: coroutine 'AsyncClient.post' was never awaited
+  return compile(source, filename, mode, flags,
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+                                                               [100%]
+==================================== ERRORS ====================================
+_______________ ERROR at setup of TestActions.test_list_actions ________________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+___________ ERROR at setup of TestActions.test_get_action_not_found ____________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+___________ ERROR at setup of TestActions.test_create_action_invalid ___________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+_______ ERROR at setup of TestActions.test_create_action_item_not_found ________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+___________ ERROR at setup of TestActions.test_create_and_get_action ___________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+__________ ERROR at setup of TestActions.test_convert_action_to_issue __________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+____________ ERROR at setup of TestActions.test_link_issue_endpoint ____________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+______ ERROR at setup of TestConversations.test_list_conversations_empty _______
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+_________ ERROR at setup of TestConversations.test_create_conversation _________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+_____ ERROR at setup of TestConversations.test_create_conversation_invalid _____
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+_____ ERROR at setup of TestConversations.test_get_conversation_not_found ______
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+_________ ERROR at setup of TestConversations.test_update_conversation _________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+_________ ERROR at setup of TestConversations.test_delete_conversation _________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+____________ ERROR at setup of TestConversations.test_unauthorized _____________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+____________ ERROR at setup of TestDashboard.test_dashboard_counts _____________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+_______ ERROR at setup of TestDashboard.test_dashboard_counts_structure ________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+_________ ERROR at setup of TestDashboard.test_recent_issues_in_counts _________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+_____________ ERROR at setup of TestDecisions.test_list_decisions ______________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+_____________ ERROR at setup of TestDecisions.test_create_decision _____________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+_________ ERROR at setup of TestDecisions.test_create_decision_invalid _________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+_________ ERROR at setup of TestDecisions.test_get_decision_not_found __________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+________________ ERROR at setup of TestLabels.test_list_labels _________________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+________________ ERROR at setup of TestLabels.test_create_label ________________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+____________ ERROR at setup of TestLabels.test_create_label_invalid ____________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+____________ ERROR at setup of TestLabels.test_get_label_not_found _____________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+_______________ ERROR at setup of TestTrace.test_trace_not_found _______________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+_______________ ERROR at setup of TestTrace.test_trace_structure _______________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+_________________ ERROR at setup of TestTrace.test_input_trace _________________
+E   AttributeError: 'coroutine' object has no attribute 'status_code'
+=================================== FAILURES ===================================
+/home/karkyon/projects/decision-os/backend/tests/test_actions_full.py:105: AttributeError: 'coroutine' object has no attribute 'status_code'
+/home/karkyon/projects/decision-os/backend/tests/test_dashboard_full.py:33: AttributeError: 'coroutine' object has no attribute 'status_code'
+/home/karkyon/projects/decision-os/backend/tests/test_decisions_extended.py:47: assert 0 >= 1
+/home/karkyon/projects/decision-os/backend/tests/test_decisions_extended.py:74: assert 403 in (200, 204)
+/home/karkyon/projects/decision-os/backend/tests/test_decisions_full.py:47: AttributeError: 'coroutine' object has no attribute 'status_code'
+/home/karkyon/projects/decision-os/backend/tests/test_labels_full.py:34: AttributeError: 'coroutine' object has no attribute 'status_code'
+/home/karkyon/projects/decision-os/backend/tests/test_trace_full.py:39: AttributeError: 'coroutine' object has no attribute 'status_code'
+/home/karkyon/projects/decision-os/backend/tests/test_users.py:34: assert 503 in (200, 403, 404, 405, 422)
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/pydantic/_internal/_config.py:291: 11 warnings
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/pydantic/_internal/_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.8/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+app/db/session.py:8
+  /home/karkyon/projects/decision-os/backend/app/db/session.py:8: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+tests/test_actions.py: 7 warnings
+tests/test_actions_extended.py: 3 warnings
+tests/test_auth.py: 1 warning
+tests/test_auth_extended.py: 2 warnings
+tests/test_conversations.py: 4 warnings
+tests/test_dashboard.py: 3 warnings
+tests/test_dashboard_extended.py: 2 warnings
+tests/test_decisions.py: 4 warnings
+tests/test_decisions_extended.py: 5 warnings
+tests/test_inputs.py: 6 warnings
+tests/test_inputs_extended.py: 7 warnings
+tests/test_issues.py: 5 warnings
+tests/test_issues_crud.py: 10 warnings
+tests/test_issues_extended.py: 4 warnings
+tests/test_items.py: 3 warnings
+tests/test_items_extended.py: 5 warnings
+tests/test_labels.py: 8 warnings
+tests/test_projects.py: 2 warnings
+tests/test_projects_extended.py: 3 warnings
+tests/test_search.py: 4 warnings
+tests/test_trace_extended.py: 3 warnings
+tests/test_users.py: 4 warnings
+  /home/karkyon/projects/decision-os/backend/app/core/security.py:17: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+
+tests/test_actions.py: 28 warnings
+tests/test_actions_extended.py: 13 warnings
+tests/test_conversations.py: 14 warnings
+tests/test_dashboard.py: 3 warnings
+tests/test_dashboard_extended.py: 3 warnings
+tests/test_decisions.py: 13 warnings
+tests/test_decisions_extended.py: 14 warnings
+tests/test_inputs.py: 17 warnings
+tests/test_inputs_extended.py: 20 warnings
+tests/test_issues.py: 7 warnings
+tests/test_issues_crud.py: 30 warnings
+tests/test_issues_extended.py: 12 warnings
+tests/test_items.py: 8 warnings
+tests/test_items_extended.py: 17 warnings
+tests/test_labels.py: 18 warnings
+tests/test_projects.py: 2 warnings
+tests/test_projects_extended.py: 3 warnings
+tests/test_search.py: 4 warnings
+tests/test_trace_extended.py: 9 warnings
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/jose/jwt.py:311: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = timegm(datetime.utcnow().utctimetuple())
+
+tests/test_actions_full.py::TestActions::test_create_action_invalid
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/_pytest/fixtures.py:738: RuntimeWarning: coroutine 'AsyncClient.post' was never awaited
+    @property
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_actions_full.py::TestActions::test_create_and_get_action
+tests/test_labels_full.py::TestLabels::test_create_label
+  /home/karkyon/.pyenv/versions/3.12.3/lib/python3.12/traceback.py:1059: RuntimeWarning: coroutine 'AsyncClient.post' was never awaited
+    def _substitution_cost(ch_a, ch_b):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_actions_full.py::TestActions::test_unauthorized
+  <frozen abc>:117: RuntimeWarning: coroutine 'AsyncClient.post' was never awaited
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_conversations_full.py::TestConversations::test_create_conversation
+  /home/karkyon/.pyenv/versions/3.12.3/lib/python3.12/selectors.py:464: RuntimeWarning: coroutine 'AsyncClient.get' was never awaited
+    max_ev = max(len(self._fd_to_key), 1)
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_conversations_full.py::TestConversations::test_create_conversation
+  /home/karkyon/.pyenv/versions/3.12.3/lib/python3.12/selectors.py:464: RuntimeWarning: coroutine 'AsyncClient.post' was never awaited
+    max_ev = max(len(self._fd_to_key), 1)
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_conversations_full.py::TestConversations::test_update_conversation
+  /home/karkyon/.pyenv/versions/3.12.3/lib/python3.12/contextlib.py:104: RuntimeWarning: coroutine 'AsyncClient.post' was never awaited
+    def __init__(self, func, args, kwds):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_dashboard.py::test_dashboard_no_filter
+  /home/karkyon/.pyenv/versions/3.12.3/lib/python3.12/_weakrefset.py:85: RuntimeWarning: coroutine 'AsyncClient.post' was never awaited
+    def add(self, item):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_dashboard_extended.py::test_dashboard_counts_with_project
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/_pytest/unraisableexception.py:85: PytestUnraisableExceptionWarning: Exception ignored in: <coroutine object AsyncClient.post at 0x7a5876376bc0>
+  
+  Traceback (most recent call last):
+    File "<string>", line 1, in <lambda>
+  KeyError: '__import__'
+  
+    warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
+
+tests/test_dashboard_full.py::TestDashboard::test_dashboard_counts_unauthorized
+tests/test_decisions_full.py::TestDecisions::test_create_decision
+tests/test_trace_full.py::TestTrace::test_trace_unauthorized
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/_pytest/_code/code.py:198: RuntimeWarning: coroutine 'AsyncClient.post' was never awaited
+    def __init__(
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_decisions.py::test_create_decision
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/sqlalchemy/orm/loading.py:811: RuntimeWarning: coroutine 'AsyncClient.post' was never awaited
+    def _instance_processor(
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_decisions_extended.py::test_decision_delete
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/sqlalchemy/engine/cursor.py:1130: RuntimeWarning: coroutine 'AsyncClient.get' was never awaited
+    def fetchall(
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_decisions_full.py::TestDecisions::test_unauthorized
+tests/test_labels_full.py::TestLabels::test_unauthorized
+  /home/karkyon/.pyenv/versions/3.12.3/lib/python3.12/asyncio/base_events.py:539: RuntimeWarning: coroutine 'AsyncClient.post' was never awaited
+    def _check_closed(self):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_inputs_extended.py::test_inputs_list_limit_offset
+  /home/karkyon/.pyenv/versions/3.12.3/lib/python3.12/asyncio/events.py:36: RuntimeWarning: coroutine 'AsyncClient.post' was never awaited
+    def __init__(self, callback, args, loop, context=None):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_inputs_extended.py::test_inputs_list_limit_offset
+  /home/karkyon/.pyenv/versions/3.12.3/lib/python3.12/asyncio/events.py:36: RuntimeWarning: coroutine 'AsyncClient.get' was never awaited
+    def __init__(self, callback, args, loop, context=None):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_projects.py::test_list_projects
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/sqlalchemy/orm/state.py:201: RuntimeWarning: coroutine 'AsyncClient.post' was never awaited
+    def __init__(self, obj: _O, manager: ClassManager[_O]):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_projects.py::test_list_projects
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/sqlalchemy/orm/state.py:201: RuntimeWarning: coroutine 'AsyncClient.get' was never awaited
+    def __init__(self, obj: _O, manager: ClassManager[_O]):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_users.py::test_list_users_with_auth
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py:707: RuntimeWarning: coroutine 'AsyncClient.post' was never awaited
+    @classmethod
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform linux, python 3.12.3-final-0 -----------
+Name                                  Stmts   Miss  Cover   Missing
+-------------------------------------------------------------------
+app/api/v1/api.py                        25      0   100%
+app/api/v1/routers/__init__.py            0      0   100%
+app/api/v1/routers/actions.py            72     10    86%   32, 68, 112, 117, 121-124, 129, 133
+app/api/v1/routers/analyze.py            65      5    92%   25, 37, 87, 95, 97
+app/api/v1/routers/auth.py               28      0   100%
+app/api/v1/routers/conversations.py      56      7    88%   22, 43, 46, 78, 80, 109, 111
+app/api/v1/routers/dashboard.py          32      1    97%   42
+app/api/v1/routers/decisions.py          48     10    79%   27, 58, 61, 63, 94-99
+app/api/v1/routers/dictionary.py        101     50    50%   71-76, 85-110, 120-136, 145-155, 161-166
+app/api/v1/routers/inputs.py             56     13    77%   21, 26-28, 89-90, 105-114
+app/api/v1/routers/issues.py            112     35    69%   60, 64, 68-72, 74-80, 84-85, 94-97, 103, 105-111, 113, 234-235, 245-257
+app/api/v1/routers/items.py              45      4    91%   50, 52, 68, 74
+app/api/v1/routers/labels.py             68     31    54%   23-25, 61, 86-104, 120-143, 162-165
+app/api/v1/routers/projects.py           28      0   100%
+app/api/v1/routers/search.py             77      3    96%   42, 70, 149
+app/api/v1/routers/trace.py              29      9    69%   46, 51, 54-73
+app/api/v1/routers/users.py              60     33    45%   32-49, 60, 71-76, 90-108
+app/api/v1/routers/ws.py                 35     23    34%   18-22, 31-55, 61
+app/core/config.py                       15      0   100%
+app/core/deps.py                         42     13    69%   25, 29, 37-44, 47, 50, 53, 56, 59, 62
+app/core/notifier.py                     58     40    31%   25-33, 36-40, 44, 48-57, 61-76, 88
+app/core/security.py                     20      2    90%   24-25
+app/db/session.py                        12      0   100%
+app/main.py                              13      0   100%
+app/models/__init__.py                   13      0   100%
+app/models/action.py                     18      0   100%
+app/models/audit_log.py                  13      0   100%
+app/models/base.py                        8      0   100%
+app/models/conversation.py               14      0   100%
+app/models/decision.py                   16      0   100%
+app/models/input.py                      19      0   100%
+app/models/interpretation.py             14      0   100%
+app/models/issue.py                      26      0   100%
+app/models/item.py                       18      0   100%
+app/models/learning_log.py               13      0   100%
+app/models/project.py                    14      0   100%
+app/models/user.py                       15      0   100%
+app/schemas/__init__.py                   0      0   100%
+app/schemas/action.py                    15      0   100%
+app/schemas/auth.py                      15      0   100%
+app/schemas/conversation.py              24      0   100%
+app/schemas/decision.py                  27      0   100%
+app/schemas/input.py                     29      1    97%   19
+app/schemas/issue.py                     34     34     0%   1-38
+app/schemas/item.py                      19      0   100%
+engine/__init__.py                        1      0   100%
+engine/classifier.py                    127     25    80%   91, 124-126, 143-144, 155-156, 172, 188-189, 211, 217-221, 236-238, 242-252
+engine/main.py                           20      3    85%   36-38
+engine/normalizer.py                     12      0   100%
+engine/scorer.py                         27      3    89%   45, 76, 81
+engine/segmenter.py                      44      9    80%   32, 34-35, 52-57
+-------------------------------------------------------------------
+TOTAL                                  1692    364    78%
+Coverage JSON written to file .coverage.json
+
+=========================== short test summary info ============================
+FAILED tests/test_actions_full.py::TestActions::test_unauthorized - Attribute...
+FAILED tests/test_dashboard_full.py::TestDashboard::test_dashboard_counts_unauthorized
+FAILED tests/test_decisions_extended.py::test_decision_create_and_list - asse...
+FAILED tests/test_decisions_extended.py::test_decision_delete - assert 403 in...
+FAILED tests/test_decisions_full.py::TestDecisions::test_unauthorized - Attri...
+FAILED tests/test_labels_full.py::TestLabels::test_unauthorized - AttributeEr...
+FAILED tests/test_trace_full.py::TestTrace::test_trace_unauthorized - Attribu...
+FAILED tests/test_users.py::test_patch_user_role - assert 503 in (200, 403, 4...
+ERROR tests/test_actions_full.py::TestActions::test_list_actions - AttributeE...
+ERROR tests/test_actions_full.py::TestActions::test_get_action_not_found - At...
+ERROR tests/test_actions_full.py::TestActions::test_create_action_invalid - A...
+ERROR tests/test_actions_full.py::TestActions::test_create_action_item_not_found
+ERROR tests/test_actions_full.py::TestActions::test_create_and_get_action - A...
+ERROR tests/test_actions_full.py::TestActions::test_convert_action_to_issue
+ERROR tests/test_actions_full.py::TestActions::test_link_issue_endpoint - Att...
+ERROR tests/test_conversations_full.py::TestConversations::test_list_conversations_empty
+ERROR tests/test_conversations_full.py::TestConversations::test_create_conversation
+ERROR tests/test_conversations_full.py::TestConversations::test_create_conversation_invalid
+ERROR tests/test_conversations_full.py::TestConversations::test_get_conversation_not_found
+ERROR tests/test_conversations_full.py::TestConversations::test_update_conversation
+ERROR tests/test_conversations_full.py::TestConversations::test_delete_conversation
+ERROR tests/test_conversations_full.py::TestConversations::test_unauthorized
+ERROR tests/test_dashboard_full.py::TestDashboard::test_dashboard_counts - At...
+ERROR tests/test_dashboard_full.py::TestDashboard::test_dashboard_counts_structure
+ERROR tests/test_dashboard_full.py::TestDashboard::test_recent_issues_in_counts
+ERROR tests/test_decisions_full.py::TestDecisions::test_list_decisions - Attr...
+ERROR tests/test_decisions_full.py::TestDecisions::test_create_decision - Att...
+ERROR tests/test_decisions_full.py::TestDecisions::test_create_decision_invalid
+ERROR tests/test_decisions_full.py::TestDecisions::test_get_decision_not_found
+ERROR tests/test_labels_full.py::TestLabels::test_list_labels - AttributeErro...
+ERROR tests/test_labels_full.py::TestLabels::test_create_label - AttributeErr...
+ERROR tests/test_labels_full.py::TestLabels::test_create_label_invalid - Attr...
+ERROR tests/test_labels_full.py::TestLabels::test_get_label_not_found - Attri...
+ERROR tests/test_trace_full.py::TestTrace::test_trace_not_found - AttributeEr...
+ERROR tests/test_trace_full.py::TestTrace::test_trace_structure - AttributeEr...
+ERROR tests/test_trace_full.py::TestTrace::test_input_trace - AttributeError:...
+8 failed, 113 passed, 5 skipped, 364 warnings, 28 errors in 29.31s
