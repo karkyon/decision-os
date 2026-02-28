@@ -1,0 +1,131 @@
+.........s.....................ssF.F.................................... [ 59%]
+.........................................s.....Fs                        [100%]
+=================================== FAILURES ===================================
+/home/karkyon/projects/decision-os/backend/tests/test_decisions_extended.py:47: assert 0 >= 1
+/home/karkyon/projects/decision-os/backend/tests/test_decisions_extended.py:74: assert 403 in (200, 204)
+/home/karkyon/projects/decision-os/backend/tests/test_users.py:34: assert 503 in (200, 403, 404, 405, 422)
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/pydantic/_internal/_config.py:291: 11 warnings
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/pydantic/_internal/_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.8/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+app/db/session.py:8
+  /home/karkyon/projects/decision-os/backend/app/db/session.py:8: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+tests/test_actions.py: 7 warnings
+tests/test_actions_extended.py: 3 warnings
+tests/test_auth.py: 1 warning
+tests/test_auth_extended.py: 2 warnings
+tests/test_conversations.py: 4 warnings
+tests/test_dashboard.py: 3 warnings
+tests/test_dashboard_extended.py: 2 warnings
+tests/test_decisions.py: 4 warnings
+tests/test_decisions_extended.py: 5 warnings
+tests/test_inputs.py: 6 warnings
+tests/test_inputs_extended.py: 7 warnings
+tests/test_issues.py: 5 warnings
+tests/test_issues_crud.py: 10 warnings
+tests/test_issues_extended.py: 4 warnings
+tests/test_items.py: 3 warnings
+tests/test_items_extended.py: 5 warnings
+tests/test_labels.py: 8 warnings
+tests/test_projects.py: 2 warnings
+tests/test_projects_extended.py: 3 warnings
+tests/test_search.py: 4 warnings
+tests/test_trace_extended.py: 3 warnings
+tests/test_users.py: 4 warnings
+  /home/karkyon/projects/decision-os/backend/app/core/security.py:17: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+
+tests/test_actions.py: 28 warnings
+tests/test_actions_extended.py: 13 warnings
+tests/test_conversations.py: 14 warnings
+tests/test_dashboard.py: 3 warnings
+tests/test_dashboard_extended.py: 3 warnings
+tests/test_decisions.py: 13 warnings
+tests/test_decisions_extended.py: 14 warnings
+tests/test_inputs.py: 17 warnings
+tests/test_inputs_extended.py: 20 warnings
+tests/test_issues.py: 7 warnings
+tests/test_issues_crud.py: 30 warnings
+tests/test_issues_extended.py: 12 warnings
+tests/test_items.py: 8 warnings
+tests/test_items_extended.py: 17 warnings
+tests/test_labels.py: 18 warnings
+tests/test_projects.py: 2 warnings
+tests/test_projects_extended.py: 3 warnings
+tests/test_search.py: 4 warnings
+tests/test_trace_extended.py: 9 warnings
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/jose/jwt.py:311: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = timegm(datetime.utcnow().utctimetuple())
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform linux, python 3.12.3-final-0 -----------
+Name                                  Stmts   Miss  Cover   Missing
+-------------------------------------------------------------------
+app/api/v1/api.py                        25      0   100%
+app/api/v1/routers/__init__.py            0      0   100%
+app/api/v1/routers/actions.py            72     10    86%   32, 68, 112, 117, 121-124, 129, 133
+app/api/v1/routers/analyze.py            65      5    92%   25, 37, 87, 95, 97
+app/api/v1/routers/auth.py               28      0   100%
+app/api/v1/routers/conversations.py      56      7    88%   22, 43, 46, 78, 80, 109, 111
+app/api/v1/routers/dashboard.py          32      1    97%   42
+app/api/v1/routers/decisions.py          48     10    79%   27, 58, 61, 63, 94-99
+app/api/v1/routers/dictionary.py        101     50    50%   71-76, 85-110, 120-136, 145-155, 161-166
+app/api/v1/routers/inputs.py             56     13    77%   21, 26-28, 89-90, 105-114
+app/api/v1/routers/issues.py            112     35    69%   60, 64, 68-72, 74-80, 84-85, 94-97, 103, 105-111, 113, 234-235, 245-257
+app/api/v1/routers/items.py              45      4    91%   50, 52, 68, 74
+app/api/v1/routers/labels.py             68     31    54%   23-25, 61, 86-104, 120-143, 162-165
+app/api/v1/routers/projects.py           28      0   100%
+app/api/v1/routers/search.py             77      3    96%   42, 70, 149
+app/api/v1/routers/trace.py              29      9    69%   46, 51, 54-73
+app/api/v1/routers/users.py              60     33    45%   32-49, 60, 71-76, 90-108
+app/api/v1/routers/ws.py                 35     23    34%   18-22, 31-55, 61
+app/core/config.py                       15      0   100%
+app/core/deps.py                         42     13    69%   25, 29, 37-44, 47, 50, 53, 56, 59, 62
+app/core/notifier.py                     58     40    31%   25-33, 36-40, 44, 48-57, 61-76, 88
+app/core/security.py                     20      2    90%   24-25
+app/db/session.py                        12      0   100%
+app/main.py                              13      0   100%
+app/models/__init__.py                   13      0   100%
+app/models/action.py                     18      0   100%
+app/models/audit_log.py                  13      0   100%
+app/models/base.py                        8      0   100%
+app/models/conversation.py               14      0   100%
+app/models/decision.py                   16      0   100%
+app/models/input.py                      19      0   100%
+app/models/interpretation.py             14      0   100%
+app/models/issue.py                      26      0   100%
+app/models/item.py                       18      0   100%
+app/models/learning_log.py               13      0   100%
+app/models/project.py                    14      0   100%
+app/models/user.py                       15      0   100%
+app/schemas/__init__.py                   0      0   100%
+app/schemas/action.py                    15      0   100%
+app/schemas/auth.py                      15      0   100%
+app/schemas/conversation.py              24      0   100%
+app/schemas/decision.py                  27      0   100%
+app/schemas/input.py                     29      1    97%   19
+app/schemas/issue.py                     34     34     0%   1-38
+app/schemas/item.py                      19      0   100%
+engine/__init__.py                        1      0   100%
+engine/classifier.py                    127     25    80%   91, 124-126, 143-144, 155-156, 172, 188-189, 211, 217-221, 236-238, 242-252
+engine/main.py                           20      3    85%   36-38
+engine/normalizer.py                     12      0   100%
+engine/scorer.py                         27      3    89%   45, 76, 81
+engine/segmenter.py                      44      9    80%   32, 34-35, 52-57
+-------------------------------------------------------------------
+TOTAL                                  1692    364    78%
+Coverage JSON written to file .coverage.json
+
+=========================== short test summary info ============================
+FAILED tests/test_decisions_extended.py::test_decision_create_and_list - asse...
+FAILED tests/test_decisions_extended.py::test_decision_delete - assert 403 in...
+FAILED tests/test_users.py::test_patch_user_role - assert 503 in (200, 403, 4...
+3 failed, 113 passed, 5 skipped, 343 warnings in 28.69s

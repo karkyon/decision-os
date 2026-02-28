@@ -68,7 +68,7 @@ export default function IssueList() {
                   cursor: "pointer", display: "flex", gap: "16px", alignItems: "center",
                   borderLeft: `4px solid ${PRIORITY_COLORS[issue.priority as Priority]}` }}>
                 <div style={{ flex: 1 }}>
-                  <p style={{ margin: "0 0 4px", fontSize: "15px", fontWeight: "500" }}>{"⬜" ?? "⬜"} {issue.title}</p>
+                  <p style={{ margin: "0 0 4px", fontSize: "15px", fontWeight: "500" }}>{"⬜"} {issue.title}</p>
                   <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>
                     {new Date(issue.created_at).toLocaleDateString("ja-JP")}
                   </p>

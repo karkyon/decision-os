@@ -1,0 +1,186 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.3.2, pluggy-1.6.0
+rootdir: /home/karkyon/projects/decision-os/backend
+configfile: pytest.ini
+plugins: anyio-4.12.1, asyncio-0.23.8, timeout-2.4.0, cov-5.0.0
+asyncio: mode=Mode.AUTO
+timeout: 120.0s
+timeout method: signal
+timeout func_only: False
+collected 70 items
+
+tests/test_actions.py .......                                            [ 10%]
+tests/test_actions_extended.py ..F                                       [ 14%]
+tests/test_auth.py ...                                                   [ 18%]
+tests/test_conversations.py ..                                           [ 21%]
+tests/test_dashboard.py ....                                             [ 27%]
+tests/test_decisions.py ..                                               [ 30%]
+tests/test_engine.py ..F.                                                [ 35%]
+tests/test_engine_extended.py ...Fs.                                     [ 44%]
+tests/test_health.py ..                                                  [ 47%]
+tests/test_inputs.py ......                                              [ 55%]
+tests/test_issues.py .....                                               [ 62%]
+tests/test_issues_extended.py ....                                       [ 68%]
+tests/test_items.py ...                                                  [ 72%]
+tests/test_labels.py FFF                                                 [ 77%]
+tests/test_projects.py ..                                                [ 80%]
+tests/test_projects_extended.py ....                                     [ 85%]
+tests/test_search.py ....                                                [ 91%]
+tests/test_users.py ....sF                                               [100%]
+
+=================================== FAILURES ===================================
+______________________________ test_list_actions _______________________________
+tests/test_actions_extended.py:55: in test_list_actions
+    assert r.status_code in (200, 404)
+E   assert 405 in (200, 404)
+E    +  where 405 = <Response [405 Method Not Allowed]>.status_code
+____________________________ test_analyze_question _____________________________
+tests/test_engine.py:20: in test_analyze_question
+    assert result[0]["intent"] == "QST"
+E   AssertionError: assert 'REQ' == 'QST'
+E     
+E     - QST
+E     + REQ
+_________________________ test_classifier_all_intents __________________________
+tests/test_engine_extended.py:34: in test_classifier_all_intents
+    assert 0 < score <= 1.0
+E   assert 3.0 <= 1.0
+______________________________ test_create_label _______________________________
+tests/test_labels.py:20: in test_create_label
+    assert r.status_code in (200, 201)
+E   assert 405 in (200, 201)
+E    +  where 405 = <Response [405 Method Not Allowed]>.status_code
+_______________________________ test_list_labels _______________________________
+tests/test_labels.py:32: in test_list_labels
+    assert isinstance(r.json(), list)
+E   AssertionError: assert False
+E    +  where False = isinstance({'labels': [], 'total': 0}, list)
+E    +    where {'labels': [], 'total': 0} = json()
+E    +      where json = <Response [200 OK]>.json
+______________________________ test_delete_label _______________________________
+tests/test_labels.py:42: in test_delete_label
+    assert r.status_code in (200, 204, 404)
+E   assert 307 in (200, 204, 404)
+E    +  where 307 = <Response [307 Temporary Redirect]>.status_code
+____________________________ test_create_user_admin ____________________________
+tests/test_users.py:72: in test_create_user_admin
+    assert r.status_code in (200, 201, 403, 409, 422)
+E   assert 405 in (200, 201, 403, 409, 422)
+E    +  where 405 = <Response [405 Method Not Allowed]>.status_code
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/pydantic/_internal/_config.py:291: 11 warnings
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/pydantic/_internal/_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.8/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+app/db/session.py:8
+  /home/karkyon/projects/decision-os/backend/app/db/session.py:8: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+tests/test_actions.py: 7 warnings
+tests/test_actions_extended.py: 3 warnings
+tests/test_auth.py: 1 warning
+tests/test_conversations.py: 2 warnings
+tests/test_dashboard.py: 3 warnings
+tests/test_decisions.py: 2 warnings
+tests/test_inputs.py: 6 warnings
+tests/test_issues.py: 5 warnings
+tests/test_issues_extended.py: 4 warnings
+tests/test_items.py: 3 warnings
+tests/test_labels.py: 3 warnings
+tests/test_projects.py: 2 warnings
+tests/test_projects_extended.py: 3 warnings
+tests/test_search.py: 4 warnings
+tests/test_users.py: 5 warnings
+  /home/karkyon/projects/decision-os/backend/app/core/security.py:17: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+
+tests/test_actions.py: 28 warnings
+tests/test_actions_extended.py: 13 warnings
+tests/test_conversations.py: 6 warnings
+tests/test_dashboard.py: 3 warnings
+tests/test_decisions.py: 6 warnings
+tests/test_inputs.py: 17 warnings
+tests/test_issues.py: 7 warnings
+tests/test_issues_extended.py: 12 warnings
+tests/test_items.py: 8 warnings
+tests/test_labels.py: 4 warnings
+tests/test_projects.py: 2 warnings
+tests/test_projects_extended.py: 3 warnings
+tests/test_search.py: 4 warnings
+  /home/karkyon/projects/decision-os/backend/.venv/lib/python3.12/site-packages/jose/jwt.py:311: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = timegm(datetime.utcnow().utctimetuple())
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform linux, python 3.12.3-final-0 -----------
+Name                                  Stmts   Miss  Cover   Missing
+-------------------------------------------------------------------
+app/api/v1/api.py                        25      0   100%
+app/api/v1/routers/__init__.py            0      0   100%
+app/api/v1/routers/actions.py            72     10    86%   32, 68, 112, 117, 121-124, 129, 133
+app/api/v1/routers/analyze.py            65      5    92%   25, 37, 87, 95, 97
+app/api/v1/routers/auth.py               28      1    96%   14
+app/api/v1/routers/conversations.py      56     25    55%   22, 43, 46, 76-97, 107-115
+app/api/v1/routers/dashboard.py          32     21    34%   20-60
+app/api/v1/routers/decisions.py          48     26    46%   27, 39-45, 56-82, 92-99
+app/api/v1/routers/dictionary.py        101     50    50%   71-76, 85-110, 120-136, 145-155, 161-166
+app/api/v1/routers/inputs.py             56     23    59%   21, 26-28, 55, 83-134
+app/api/v1/routers/issues.py            112     39    65%   55-56, 60, 64, 68-72, 74-80, 84-85, 94-97, 103, 105-111, 113, 173, 186, 234-235, 245-257
+app/api/v1/routers/items.py              45     26    42%   32-56, 66-78
+app/api/v1/routers/labels.py             68     39    43%   23-25, 61, 86-104, 120-143, 154-168
+app/api/v1/routers/projects.py           28      0   100%
+app/api/v1/routers/search.py             77      4    95%   42, 45, 70, 149
+app/api/v1/routers/trace.py              29     10    66%   26, 46, 51, 54-73
+app/api/v1/routers/users.py              60     35    42%   32-49, 60, 71-76, 87-108
+app/api/v1/routers/ws.py                 35     23    34%   18-22, 31-55, 61
+app/core/config.py                       15      0   100%
+app/core/deps.py                         42     13    69%   25, 29, 37-44, 47, 50, 53, 56, 59, 62
+app/core/notifier.py                     58     40    31%   25-33, 36-40, 44, 48-57, 61-76, 88
+app/core/security.py                     20      2    90%   24-25
+app/db/session.py                        12      0   100%
+app/main.py                              13      0   100%
+app/models/__init__.py                   13      0   100%
+app/models/action.py                     18      0   100%
+app/models/audit_log.py                  13      0   100%
+app/models/base.py                        8      0   100%
+app/models/conversation.py               14      0   100%
+app/models/decision.py                   16      0   100%
+app/models/input.py                      19      0   100%
+app/models/interpretation.py             14      0   100%
+app/models/issue.py                      26      0   100%
+app/models/item.py                       18      0   100%
+app/models/learning_log.py               13      0   100%
+app/models/project.py                    14      0   100%
+app/models/user.py                       15      0   100%
+app/schemas/__init__.py                   0      0   100%
+app/schemas/action.py                    15      0   100%
+app/schemas/auth.py                      15      0   100%
+app/schemas/conversation.py              24      0   100%
+app/schemas/decision.py                  27      0   100%
+app/schemas/input.py                     29      1    97%   19
+app/schemas/issue.py                     34     34     0%   1-38
+app/schemas/item.py                      19      0   100%
+engine/__init__.py                        1      0   100%
+engine/classifier.py                    127     25    80%   91, 124-126, 143-144, 155-156, 172, 188-189, 211, 217-221, 236-238, 242-252
+engine/main.py                           20      3    85%   36-38
+engine/normalizer.py                     12      0   100%
+engine/scorer.py                         27      3    89%   45, 76, 81
+engine/segmenter.py                      44     10    77%   13, 32, 34-35, 52-57
+-------------------------------------------------------------------
+TOTAL                                  1692    468    72%
+Coverage HTML written to dir htmlcov
+Coverage JSON written to file .coverage.json
+
+=========================== short test summary info ============================
+FAILED tests/test_actions_extended.py::test_list_actions - assert 405 in (200...
+FAILED tests/test_engine.py::test_analyze_question - AssertionError: assert '...
+FAILED tests/test_engine_extended.py::test_classifier_all_intents - assert 3....
+FAILED tests/test_labels.py::test_create_label - assert 405 in (200, 201)
+FAILED tests/test_labels.py::test_list_labels - AssertionError: assert False
+FAILED tests/test_labels.py::test_delete_label - assert 307 in (200, 204, 404)
+FAILED tests/test_users.py::test_create_user_admin - assert 405 in (200, 201,...
+============ 7 failed, 61 passed, 2 skipped, 179 warnings in 16.83s ============
