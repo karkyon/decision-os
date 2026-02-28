@@ -1,0 +1,403 @@
+import React from 'react'
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { authStore } from '../store/auth'
+
+interface Issue {
+  id: string
+  title: string
+  description?: string
+  status: string
+  priority: string
+  assignee_id?: string
+  labels?: string
+  created_at: string
+  updated_at?: string
+}
+
+interface TraceItem {
+  id: string
+  text: string
+  intent_code: string
+  domain_code: string
+  confidence: number
+}
+
+interface TraceInput {
+  id: string
+  source_type: string
+  raw_text: string
+  created_at: string
+}
+
+interface TraceData {
+  issue: Issue
+  action?: { id: string; action_type: string; decision_reason?: string }
+  item?: TraceItem
+  input?: TraceInput
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  open: '未着手',
+  in_progress: '作業中',
+  review: 'レビュー',
+  done: '完了',
+  hold: '保留',
+}
+
+const PRIORITY_LABELS: Record<string, string> = {
+  low: '低',
+  medium: '中',
+  high: '高',
+  critical: '緊急',
+}
+
+const PRIORITY_COLORS: Record<string, string> = {
+  low: '#6b7280',
+  medium: '#f59e0b',
+  high: '#ef4444',
+  critical: '#7c3aed',
+}
+
+export default function IssueDetail() {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const token = authStore.getToken()
+
+  const [issue, setIssue] = useState<Issue | null>(null)
+  const [trace, setTrace] = useState<TraceData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [editStatus, setEditStatus] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState<'detail' | 'trace'>('detail')
+
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  }
+
+  useEffect(() => {
+    if (!id) return
+    fetchIssue()
+    fetchTrace()
+  }, [id])
+
+  async function fetchIssue() {
+    try {
+      const res = await fetch(`/api/v1/issues/${id}`, { headers })
+      if (!res.ok) throw new Error('取得失敗')
+      const data = await res.json()
+      setIssue(data)
+      setEditStatus(data.status)
+    } catch (e) {
+      setError('課題の取得に失敗しました')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function fetchTrace() {
+    try {
+      const res = await fetch(`/api/v1/trace/${id}`, { headers })
+      if (res.ok) {
+        const data = await res.json()
+        setTrace(data)
+      }
+    } catch {
+      // トレースは任意なのでエラー無視
+    }
+  }
+
+  async function handleStatusChange(newStatus: string) {
+    if (!id) return
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/v1/issues/${id}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (!res.ok) throw new Error('更新失敗')
+      const updated = await res.json()
+      setIssue(updated)
+      setEditStatus(updated.status)
+    } catch {
+      setError('ステータスの更新に失敗しました')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
+        <div style={{ color: '#6b7280' }}>読み込み中...</div>
+      </div>
+    )
+  }
+
+  if (error || !issue) {
+    return (
+      <div style={{ padding: '32px' }}>
+        <div style={{ color: '#ef4444', marginBottom: '16px' }}>{error || '課題が見つかりません'}</div>
+        <button onClick={() => navigate('/issues')} style={btnStyle}>← 一覧に戻る</button>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ maxWidth: '900px' }}>
+      {/* ヘッダー */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+        <button onClick={() => navigate('/issues')} style={backBtnStyle}>
+          ← 一覧
+        </button>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#1e293b', margin: 0, flex: 1 }}>
+          {issue.title}
+        </h1>
+        <span style={{
+          padding: '4px 12px',
+          borderRadius: '999px',
+          background: PRIORITY_COLORS[issue.priority] + '20',
+          color: PRIORITY_COLORS[issue.priority],
+          fontSize: '13px',
+          fontWeight: 600,
+        }}>
+          {PRIORITY_LABELS[issue.priority] || issue.priority}
+        </span>
+      </div>
+
+      {/* タブ */}
+      <div style={{ display: 'flex', gap: '4px', marginBottom: '24px', borderBottom: '2px solid #e2e8f0' }}>
+        {(['detail', 'trace'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{
+              padding: '10px 20px',
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
+              fontWeight: activeTab === tab ? 700 : 400,
+              color: activeTab === tab ? '#3b82f6' : '#6b7280',
+              borderBottom: activeTab === tab ? '2px solid #3b82f6' : '2px solid transparent',
+              marginBottom: '-2px',
+            }}
+          >
+            {tab === 'detail' ? '詳細' : 'トレーサビリティ'}
+          </button>
+        ))}
+      </div>
+
+      {/* 詳細タブ */}
+      {activeTab === 'detail' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '24px' }}>
+          {/* 左カラム */}
+          <div>
+            <div style={cardStyle}>
+              <h3 style={cardTitleStyle}>説明</h3>
+              <p style={{ color: '#475569', lineHeight: 1.7, margin: 0 }}>
+                {issue.description || '（説明なし）'}
+              </p>
+            </div>
+          </div>
+
+          {/* 右カラム */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={cardStyle}>
+              <h3 style={cardTitleStyle}>ステータス</h3>
+              <select
+                value={editStatus}
+                onChange={(e) => {
+                  setEditStatus(e.target.value)
+                  handleStatusChange(e.target.value)
+                }}
+                disabled={saving}
+                style={selectStyle}
+              >
+                {Object.entries(STATUS_LABELS).map(([val, label]) => (
+                  <option key={val} value={val}>{label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={cardStyle}>
+              <h3 style={cardTitleStyle}>優先度</h3>
+              <span style={{ color: PRIORITY_COLORS[issue.priority], fontWeight: 600 }}>
+                {PRIORITY_LABELS[issue.priority] || issue.priority}
+              </span>
+            </div>
+
+            <div style={cardStyle}>
+              <h3 style={cardTitleStyle}>ラベル</h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {issue.labels
+                  ? issue.labels.split(',').map((l) => (
+                      <span key={l} style={tagStyle}>{l.trim()}</span>
+                    ))
+                  : <span style={{ color: '#94a3b8', fontSize: '13px' }}>なし</span>
+                }
+              </div>
+            </div>
+
+            <div style={cardStyle}>
+              <h3 style={cardTitleStyle}>作成日時</h3>
+              <span style={{ color: '#475569', fontSize: '13px' }}>
+                {new Date(issue.created_at).toLocaleString('ja-JP')}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* トレーサビリティタブ */}
+      {activeTab === 'trace' && (
+        <div>
+          {trace ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* 課題 */}
+              <TraceNode
+                label="課題 (ISSUE)"
+                color="#3b82f6"
+                content={trace.issue.title}
+              />
+
+              {/* アクション */}
+              {trace.action && (
+                <>
+                  <TraceArrow />
+                  <TraceNode
+                    label="対応判断 (ACTION)"
+                    color="#8b5cf6"
+                    content={trace.action.action_type}
+                    sub={trace.action.decision_reason}
+                  />
+                </>
+              )}
+
+              {/* アイテム */}
+              {trace.item && (
+                <>
+                  <TraceArrow />
+                  <TraceNode
+                    label={`分解単位 (ITEM) — ${trace.item.intent_code} / ${trace.item.domain_code}`}
+                    color="#10b981"
+                    content={trace.item.text}
+                    sub={`信頼度: ${Math.round(trace.item.confidence * 100)}%`}
+                  />
+                </>
+              )}
+
+              {/* 原文 */}
+              {trace.input && (
+                <>
+                  <TraceArrow />
+                  <TraceNode
+                    label={`原文 (INPUT) — ${trace.input.source_type} / ${new Date(trace.input.created_at).toLocaleDateString('ja-JP')}`}
+                    color="#f59e0b"
+                    content={trace.input.raw_text}
+                  />
+                </>
+              )}
+            </div>
+          ) : (
+            <div style={{ color: '#94a3b8', padding: '32px', textAlign: 'center' }}>
+              トレースデータがありません
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── サブコンポーネント ────────────────────────────────────────────────────────
+
+function TraceNode({ label, color, content, sub }: {
+  label: string
+  color: string
+  content: string
+  sub?: string
+}) {
+  return (
+    <div style={{
+      border: `2px solid ${color}30`,
+      borderLeft: `4px solid ${color}`,
+      borderRadius: '8px',
+      padding: '16px',
+      background: '#fff',
+    }}>
+      <div style={{ fontSize: '12px', fontWeight: 700, color, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        {label}
+      </div>
+      <div style={{ color: '#1e293b', lineHeight: 1.6 }}>{content}</div>
+      {sub && <div style={{ color: '#94a3b8', fontSize: '13px', marginTop: '6px' }}>{sub}</div>}
+    </div>
+  )
+}
+
+function TraceArrow() {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', color: '#cbd5e1', fontSize: '20px' }}>
+      ↑
+    </div>
+  )
+}
+
+// ── スタイル定数 ──────────────────────────────────────────────────────────────
+
+const cardStyle: React.CSSProperties = {
+  background: '#fff',
+  border: '1px solid #e2e8f0',
+  borderRadius: '8px',
+  padding: '16px',
+}
+
+const cardTitleStyle: React.CSSProperties = {
+  fontSize: '12px',
+  fontWeight: 700,
+  color: '#94a3b8',
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+  marginBottom: '10px',
+  margin: '0 0 10px 0',
+}
+
+const btnStyle: React.CSSProperties = {
+  padding: '8px 16px',
+  background: '#3b82f6',
+  color: '#fff',
+  border: 'none',
+  borderRadius: '6px',
+  cursor: 'pointer',
+  fontWeight: 600,
+}
+
+const backBtnStyle: React.CSSProperties = {
+  padding: '6px 14px',
+  background: '#f1f5f9',
+  color: '#475569',
+  border: '1px solid #e2e8f0',
+  borderRadius: '6px',
+  cursor: 'pointer',
+}
+
+const selectStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '8px',
+  border: '1px solid #e2e8f0',
+  borderRadius: '6px',
+  background: '#f8fafc',
+  color: '#1e293b',
+  cursor: 'pointer',
+}
+
+const tagStyle: React.CSSProperties = {
+  padding: '2px 10px',
+  background: '#eff6ff',
+  color: '#3b82f6',
+  borderRadius: '999px',
+  fontSize: '12px',
+  fontWeight: 600,
+}

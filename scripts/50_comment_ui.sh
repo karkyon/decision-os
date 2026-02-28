@@ -1,3 +1,98 @@
+#!/bin/bash
+set -e
+PROJECT_DIR=~/projects/decision-os
+BACKEND_DIR=$PROJECT_DIR/backend
+FRONTEND_DIR=$PROJECT_DIR/frontend
+PAGES_DIR=$FRONTEND_DIR/src/pages
+API_DIR=$FRONTEND_DIR/src/api
+ISSUE_DETAIL=$PAGES_DIR/IssueDetail.tsx
+
+section() { echo ""; echo "========== $1 =========="; }
+ok()      { echo "  ✅ $1"; }
+info()    { echo "  [INFO] $1"; }
+warn()    { echo "  ⚠️  $1"; }
+
+# ============================================================
+section "1. 会話 API 疎通確認"
+# ============================================================
+cd $BACKEND_DIR && source .venv/bin/activate
+
+LOGIN_RESP=$(curl -s -X POST http://localhost:8089/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"demo@example.com","password":"demo1234"}')
+TOKEN=$(echo $LOGIN_RESP | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))" 2>/dev/null)
+
+# conversations エンドポイント確認
+CONV_CHECK=$(curl -s -o /dev/null -w "%{http_code}" \
+  "http://localhost:8089/api/v1/conversations?issue_id=00000000-0000-0000-0000-000000000000" \
+  -H "Authorization: Bearer $TOKEN")
+info "conversations API ステータス: $CONV_CHECK"
+
+if [ "$CONV_CHECK" = "404" ] || [ "$CONV_CHECK" = "200" ]; then
+  ok "conversations API 存在確認"
+else
+  warn "conversations API が未登録の可能性。api.py に追加します..."
+  python3 - << 'PYEOF'
+import os
+path = os.path.expanduser("~/projects/decision-os/backend/app/api/v1/api.py")
+with open(path) as f:
+    content = f.read()
+if "conversations" not in content:
+    content = content.replace(
+        "from .routers.dashboard import router as dashboard_router",
+        "from .routers.dashboard import router as dashboard_router\nfrom .routers.conversations import router as conversations_router"
+    )
+    content = content.replace(
+        "api_router.include_router(dashboard_router)",
+        "api_router.include_router(dashboard_router)\napi_router.include_router(conversations_router)"
+    )
+    with open(path, "w") as f:
+        f.write(content)
+    print("  ✅ api.py に conversations_router 追加")
+else:
+    print("  ✅ conversations_router は既に登録済み")
+PYEOF
+  # バックエンド再起動
+  pkill -f "uvicorn app.main" 2>/dev/null; sleep 2
+  nohup uvicorn app.main:app --host 0.0.0.0 --port 8089 --reload \
+    > $PROJECT_DIR/logs/backend.log 2>&1 &
+  sleep 3
+  ok "バックエンド再起動完了"
+fi
+
+# ============================================================
+section "2. client.ts に conversationApi 追加"
+# ============================================================
+python3 - << 'PYEOF'
+import os
+path = os.path.expanduser("~/projects/decision-os/frontend/src/api/client.ts")
+with open(path) as f:
+    content = f.read()
+
+if "conversationApi" not in content:
+    append = """
+// ── Conversations（コメント）──────────────────────────────────────────
+export const conversationApi = {
+  list:   (issueId: string) => client.get(`/conversations?issue_id=${issueId}`),
+  create: (data: { issue_id: string; body: string }) => client.post("/conversations", data),
+  update: (id: string, body: string) => client.patch(`/conversations/${id}`, { body }),
+  delete: (id: string) => client.delete(`/conversations/${id}`),
+};
+"""
+    with open(path, "w") as f:
+        f.write(content.rstrip() + "\n" + append)
+    print("  ✅ conversationApi 追加完了")
+else:
+    print("  ✅ conversationApi は既に存在")
+PYEOF
+
+# ============================================================
+section "3. IssueDetail.tsx にコメントスレッドを追加"
+# ============================================================
+info "バックアップ作成..."
+cp $ISSUE_DETAIL ${ISSUE_DETAIL}.bak_comment
+
+cat > $ISSUE_DETAIL << 'TSX_EOF'
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import client from '../api/client'
@@ -52,7 +147,7 @@ export default function IssueDetail() {
   const [issue, setIssue] = useState<Issue | null>(null)
   const [trace, setTrace] = useState<TraceData | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
-  const [_traceLoading, _setTraceLoading] = useState(false)
+  const [traceLoading, setTraceLoading] = useState(false)
   const [traceError, setTraceError] = useState('')
   const [inputExpanded, setInputExpanded] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -373,7 +468,7 @@ export default function IssueDetail() {
             <span style={{ fontSize: '11px', color: '#475569', fontWeight: '400' }}>原点を追跡</span>
           </div>
 
-          {_traceLoading ? (
+          {traceLoading ? (
             <div style={{ textAlign: 'center', padding: '40px', color: '#64748b', fontSize: '13px' }}>🔄 追跡中...</div>
           ) : traceError && !trace ? (
             <div style={{ padding: '16px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334155', color: '#64748b', fontSize: '13px' }}>
@@ -466,3 +561,52 @@ function TraceNode({ icon, label, color, title, body, meta }: {
     </div>
   )
 }
+TSX_EOF
+
+ok "IssueDetail.tsx — コメント機能追加完了"
+
+# ============================================================
+section "4. TypeScript ビルド確認"
+# ============================================================
+cd $FRONTEND_DIR
+info "npm run build 実行中..."
+if npm run build > /tmp/comment_build.log 2>&1; then
+  ok "ビルド成功 🎉"
+else
+  grep -E "error TS" /tmp/comment_build.log | head -20
+  warn "ビルドエラー確認してください"
+fi
+
+# ============================================================
+section "5. コメント投稿の動作テスト"
+# ============================================================
+# 既存のISSUE IDを取得してテスト投稿
+ISSUE_ID=$(curl -s "http://localhost:8089/api/v1/issues" \
+  -H "Authorization: Bearer $TOKEN" | \
+  python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+items = d if isinstance(d,list) else d.get('items',d.get('data',[]))
+print(items[0]['id'] if items else '')
+" 2>/dev/null || echo "")
+
+if [ -n "$ISSUE_ID" ]; then
+  POST=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+    "http://localhost:8089/api/v1/conversations" \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"issue_id\":\"$ISSUE_ID\",\"body\":\"動作確認コメント\"}")
+  info "コメント投稿テスト: HTTP $POST"
+  [ "$POST" = "201" ] || [ "$POST" = "200" ] && ok "コメント投稿 OK" || warn "HTTP $POST (要確認)"
+fi
+
+echo ""
+echo "=============================================="
+echo "🎉 コメント機能 実装完了！"
+echo ""
+echo "  確認方法:"
+echo "  1. http://localhost:3008/issues/<ISSUE_ID>"
+echo "  2. 左カラム下部「💬 コメント」エリアを確認"
+echo "  3. 入力 → 投稿ボタン or Ctrl+Enter で送信"
+echo "  4. 自分のコメントに ✏️ 編集 / 🗑 削除 が表示される"
+echo "=============================================="

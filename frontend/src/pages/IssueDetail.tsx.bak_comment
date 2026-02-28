@@ -1,0 +1,474 @@
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import client from '../api/client'
+import { authStore } from '../store/auth'
+
+// ── 型定義 ──────────────────────────────────────────────────────────────────
+
+interface Issue {
+  id: string
+  title: string
+  description: string
+  status: string
+  priority: string
+  issue_type?: string
+  project_id?: string
+  assignee_id?: string
+  due_date?: string
+  created_at: string
+  updated_at: string
+}
+
+interface TraceData {
+  issue: { id: string; title: string; status: string; priority: string }
+  action?: {
+    id: string
+    action_type: string
+    decision_reason?: string
+    created_at: string
+  }
+  item?: {
+    id: string
+    text: string
+    intent_code: string
+    domain_code: string
+    confidence: number
+  }
+  input?: {
+    id: string
+    raw_text: string
+    source_type: string
+    created_at: string
+    author?: string
+  }
+}
+
+// ── 定数 ────────────────────────────────────────────────────────────────────
+
+const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
+  open:        { label: '未着手',   color: '#fbbf24', bg: '#422006' },
+  in_progress: { label: '進行中',   color: '#60a5fa', bg: '#1e3a5f' },
+  review:      { label: 'レビュー', color: '#a78bfa', bg: '#2e1065' },
+  done:        { label: '完了',     color: '#4ade80', bg: '#14532d' },
+  closed:      { label: 'クローズ', color: '#94a3b8', bg: '#1e293b' },
+}
+
+const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
+  critical: { label: '緊急', color: '#ef4444' },
+  high:     { label: '高',   color: '#f97316' },
+  medium:   { label: '中',   color: '#eab308' },
+  low:      { label: '低',   color: '#64748b' },
+}
+
+const STATUS_OPTIONS = ['open', 'in_progress', 'review', 'done', 'closed']
+
+// ── メインコンポーネント ─────────────────────────────────────────────────────
+
+export default function IssueDetail() {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+
+  const [issue, setIssue] = useState<Issue | null>(null)
+  const [trace, setTrace] = useState<TraceData | null>(null)
+  const [traceLoading, setTraceLoading] = useState(false)
+  const [traceError, setTraceError] = useState('')
+  const [inputExpanded, setInputExpanded] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [_editStatus, setEditStatus] = useState('')
+  const [showStatusMenu, setShowStatusMenu] = useState(false)
+
+  // ISSUE取得
+  useEffect(() => {
+    if (!id) return
+    client.get(`/issues/${id}`)
+      .then(res => {
+        setIssue(res.data)
+        setEditStatus(res.data.status)
+      })
+      .catch(() => setError('課題が見つかりません'))
+      .finally(() => setLoading(false))
+  }, [id])
+
+  // TRACE取得
+  useEffect(() => {
+    if (!id) return
+    setTraceLoading(true)
+    client.get(`/trace/${id}`)
+      .then(res => setTrace(res.data))
+      .catch(() => setTraceError('トレースデータを取得できませんでした'))
+      .finally(() => setTraceLoading(false))
+  }, [id])
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!issue) return
+    setSaving(true)
+    setShowStatusMenu(false)
+    try {
+      const res = await client.patch(`/issues/${issue.id}`, { status: newStatus })
+      setIssue(res.data)
+      setEditStatus(res.data.status)
+    } catch {
+      alert('ステータス更新に失敗しました')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleLogout = () => {
+    authStore.logout()
+    navigate('/login')
+  }
+
+  if (loading) return (
+    <div style={{ padding: '40px', color: '#64748b', textAlign: 'center' }}>
+      🔄 読み込み中...
+    </div>
+  )
+
+  if (error || !issue) return (
+    <div style={{ padding: '40px', color: '#f87171', textAlign: 'center' }}>
+      ⚠️ {error || '課題が見つかりません'}
+    </div>
+  )
+
+  const statusInfo = STATUS_MAP[issue.status] ?? { label: issue.status, color: '#94a3b8', bg: '#1e293b' }
+  const priorityInfo = PRIORITY_MAP[issue.priority] ?? { label: issue.priority, color: '#94a3b8' }
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#0f172a', color: '#e2e8f0' }}>
+
+      {/* ── ナビバー ── */}
+      <nav style={{
+        background: '#1e293b', borderBottom: '1px solid #334155',
+        padding: '0 24px', height: '52px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button onClick={() => navigate('/')}
+            style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '20px' }}>
+            ⚖️
+          </button>
+          <button onClick={() => navigate(-1)}
+            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '13px' }}>
+            ← 戻る
+          </button>
+          <span style={{ color: '#475569', fontSize: '13px' }}>/ 課題詳細</span>
+        </div>
+        <button onClick={handleLogout}
+          style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '13px' }}>
+          ログアウト
+        </button>
+      </nav>
+
+      {/* ── 2カラムレイアウト ── */}
+      <div style={{ display: 'flex', height: 'calc(100vh - 52px)' }}>
+
+        {/* ── 左カラム: 課題本体 ── */}
+        <div style={{
+          flex: 1, overflowY: 'auto', padding: '28px 32px',
+          borderRight: '1px solid #334155',
+        }}>
+
+          {/* ヘッダー */}
+          <div style={{ marginBottom: '24px' }}>
+            <h1 style={{ fontSize: '22px', fontWeight: '700', margin: '0 0 12px', lineHeight: 1.4 }}>
+              {issue.title}
+            </h1>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+              {/* ステータスバッジ（クリックで変更） */}
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setShowStatusMenu(!showStatusMenu)}
+                  disabled={saving}
+                  style={{
+                    padding: '4px 12px', borderRadius: '20px', fontSize: '12px',
+                    fontWeight: '600', cursor: 'pointer', border: 'none',
+                    background: statusInfo.bg, color: statusInfo.color,
+                  }}
+                >
+                  {saving ? '保存中...' : statusInfo.label} ▾
+                </button>
+                {showStatusMenu && (
+                  <div style={{
+                    position: 'absolute', top: '100%', left: 0, zIndex: 100,
+                    background: '#1e293b', border: '1px solid #334155',
+                    borderRadius: '8px', overflow: 'hidden', marginTop: '4px',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                  }}>
+                    {STATUS_OPTIONS.map(s => {
+                      const si = STATUS_MAP[s]
+                      return (
+                        <button key={s}
+                          onClick={() => handleStatusChange(s)}
+                          style={{
+                            display: 'block', width: '100%', padding: '8px 16px',
+                            background: s === issue.status ? '#0f172a' : 'transparent',
+                            border: 'none', color: si.color,
+                            cursor: 'pointer', textAlign: 'left', fontSize: '13px',
+                          }}
+                        >
+                          {si.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* 優先度 */}
+              <span style={{
+                padding: '4px 12px', borderRadius: '20px', fontSize: '12px',
+                background: '#1e293b', border: '1px solid #334155',
+                color: priorityInfo.color, fontWeight: '600',
+              }}>
+                {priorityInfo.label}
+              </span>
+
+              {/* 作成日 */}
+              <span style={{ fontSize: '12px', color: '#64748b' }}>
+                {new Date(issue.created_at).toLocaleDateString('ja-JP')}
+              </span>
+            </div>
+          </div>
+
+          {/* 説明 */}
+          <div style={{
+            background: '#1e293b', border: '1px solid #334155',
+            borderRadius: '10px', padding: '20px', marginBottom: '24px',
+          }}>
+            <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '8px', fontWeight: '600' }}>
+              📝 説明
+            </div>
+            <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.7, color: '#cbd5e1', whiteSpace: 'pre-wrap' }}>
+              {issue.description || '（説明なし）'}
+            </p>
+          </div>
+
+          {/* メタ情報 */}
+          <div style={{
+            background: '#1e293b', border: '1px solid #334155',
+            borderRadius: '10px', padding: '20px',
+          }}>
+            <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '12px', fontWeight: '600' }}>
+              📊 詳細情報
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <MetaRow label="種別" value={issue.issue_type ?? '—'} />
+              <MetaRow label="担当者" value={issue.assignee_id ?? '未割当'} />
+              <MetaRow label="期限" value={issue.due_date
+                ? new Date(issue.due_date).toLocaleDateString('ja-JP')
+                : '未設定'} />
+              <MetaRow label="更新日" value={new Date(issue.updated_at).toLocaleDateString('ja-JP')} />
+            </div>
+          </div>
+
+        </div>
+
+        {/* ── 右カラム: トレーサーパネル ── */}
+        <div style={{
+          width: '380px', flexShrink: 0,
+          overflowY: 'auto', padding: '24px 20px',
+          background: '#0a1628',
+        }}>
+          <div style={{
+            fontSize: '14px', fontWeight: '700', color: '#f1f5f9',
+            marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px',
+          }}>
+            🔗 意思決定トレーサー
+            <span style={{ fontSize: '11px', color: '#475569', fontWeight: '400' }}>
+              この課題の原点を追跡
+            </span>
+          </div>
+
+          {traceLoading ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#64748b', fontSize: '13px' }}>
+              🔄 追跡中...
+            </div>
+          ) : traceError ? (
+            <div style={{
+              padding: '16px', borderRadius: '8px',
+              background: '#450a0a', border: '1px solid #7f1d1d',
+              color: '#fca5a5', fontSize: '13px',
+            }}>
+              ⚠️ {traceError}
+              <div style={{ marginTop: '8px', color: '#64748b', fontSize: '12px' }}>
+                このISSUEはINPUTから直接作成されたか、<br/>トレースデータが未登録です。
+              </div>
+            </div>
+          ) : trace ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+
+              {/* ISSUE ノード */}
+              <TraceNode
+                icon="📋"
+                label="ISSUE（課題）"
+                color="#3b82f6"
+                title={trace.issue.title}
+                meta={STATUS_MAP[trace.issue.status]?.label}
+              />
+
+              {/* ACTION ノード */}
+              {trace.action && (
+                <>
+                  <TraceArrow reason="判断" />
+                  <TraceNode
+                    icon="⚡"
+                    label="ACTION（対応判断）"
+                    color="#8b5cf6"
+                    title={trace.action.action_type}
+                    body={trace.action.decision_reason}
+                    meta={new Date(trace.action.created_at).toLocaleDateString('ja-JP')}
+                  />
+                </>
+              )}
+
+              {/* ITEM ノード */}
+              {trace.item && (
+                <>
+                  <TraceArrow reason="分解" />
+                  <TraceNode
+                    icon="🧩"
+                    label={`ITEM（分解単位） — ${trace.item.intent_code} / ${trace.item.domain_code}`}
+                    color="#10b981"
+                    title={trace.item.text}
+                    meta={`信頼度 ${Math.round(trace.item.confidence * 100)}%`}
+                  />
+                </>
+              )}
+
+              {/* INPUT ノード */}
+              {trace.input && (
+                <>
+                  <TraceArrow reason="原文" />
+                  <div
+                    style={{
+                      background: '#1e293b',
+                      border: '2px solid #f59e0b',
+                      borderRadius: '10px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div style={{ padding: '12px 14px', borderBottom: '1px solid #334155' }}>
+                      <div style={{ fontSize: '10px', color: '#f59e0b', fontWeight: '700', marginBottom: '4px', letterSpacing: '0.05em' }}>
+                        📄 INPUT（原文） — {trace.input.source_type}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#64748b' }}>
+                        {new Date(trace.input.created_at).toLocaleDateString('ja-JP')}
+                        {trace.input.author && ` / ${trace.input.author}`}
+                      </div>
+                    </div>
+                    <div style={{ padding: '12px 14px' }}>
+                      <p style={{
+                        margin: 0, fontSize: '13px', color: '#cbd5e1',
+                        lineHeight: 1.6, whiteSpace: 'pre-wrap',
+                        maxHeight: inputExpanded ? 'none' : '120px',
+                        overflow: inputExpanded ? 'visible' : 'hidden',
+                      }}>
+                        {trace.input.raw_text}
+                      </p>
+                      {trace.input.raw_text.length > 200 && (
+                        <button
+                          onClick={() => setInputExpanded(!inputExpanded)}
+                          style={{
+                            marginTop: '8px', background: 'none', border: 'none',
+                            color: '#f59e0b', cursor: 'pointer', fontSize: '12px',
+                            padding: '2px 0',
+                          }}
+                        >
+                          {inputExpanded ? '▲ 折りたたむ' : '▼ 全文を表示'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* トレースが部分的な場合 */}
+              {!trace.action && !trace.item && !trace.input && (
+                <div style={{
+                  marginTop: '12px', padding: '12px', borderRadius: '8px',
+                  background: '#1e293b', border: '1px solid #334155',
+                  color: '#64748b', fontSize: '12px', textAlign: 'center',
+                }}>
+                  この課題はINPUTから直接作成されました
+                </div>
+              )}
+
+            </div>
+          ) : (
+            <div style={{
+              textAlign: 'center', padding: '40px', color: '#64748b', fontSize: '13px',
+            }}>
+              トレースデータがありません
+            </div>
+          )}
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
+// ── サブコンポーネント ────────────────────────────────────────────────────────
+
+function MetaRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: '11px', color: '#475569', marginBottom: '2px' }}>{label}</div>
+      <div style={{ fontSize: '13px', color: '#cbd5e1' }}>{value}</div>
+    </div>
+  )
+}
+
+function TraceArrow({ reason }: { reason: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '2px 14px' }}>
+      <div style={{ width: '2px', height: '20px', background: '#334155', margin: '0 auto' }} />
+      <span style={{ fontSize: '10px', color: '#475569', whiteSpace: 'nowrap' }}>
+        {reason}
+      </span>
+    </div>
+  )
+}
+
+function TraceNode({
+  icon, label, color, title, body, meta
+}: {
+  icon: string
+  label: string
+  color: string
+  title: string
+  body?: string
+  meta?: string
+}) {
+  return (
+    <div style={{
+      background: '#1e293b',
+      border: `2px solid ${color}`,
+      borderRadius: '10px',
+      padding: '12px 14px',
+    }}>
+      <div style={{
+        fontSize: '10px', color: color, fontWeight: '700',
+        marginBottom: '6px', letterSpacing: '0.05em',
+      }}>
+        {icon} {label}
+      </div>
+      <div style={{ fontSize: '13px', color: '#f1f5f9', fontWeight: '500', lineHeight: 1.5 }}>
+        {title}
+      </div>
+      {body && (
+        <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px', lineHeight: 1.5 }}>
+          {body}
+        </div>
+      )}
+      {meta && (
+        <div style={{ fontSize: '11px', color: '#475569', marginTop: '6px' }}>
+          {meta}
+        </div>
+      )}
+    </div>
+  )
+}
