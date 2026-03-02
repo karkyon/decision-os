@@ -18,6 +18,7 @@ class Issue(Base):
     labels = Column(Text)  # JSON配列文字列
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    tenant_id = Column(UUID(as_uuid=False), ForeignKey("tenants.id"), nullable=True, index=True)
 
     parent_id  = Column(UUID(as_uuid=True), ForeignKey("issues.id", ondelete="SET NULL"), nullable=True)
     issue_type = Column(String, default="task")  # epic / story / task

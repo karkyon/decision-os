@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from .routers import auth, inputs, analyze, items, actions, issues, trace, projects, ws, labels
+from .routers import auth, invite, inputs, analyze, items, actions, issues, trace, projects, ws, labels
 from .routers.dashboard import router as dashboard_router
 from .routers.conversations import router as conversations_router
 from .routers.search import router as search_router
@@ -10,6 +10,7 @@ from .tenants import router as tenants_router
 
 api_router = APIRouter()
 api_router.include_router(auth.router)
+api_router.include_router(invite.router)
 api_router.include_router(projects.router)
 api_router.include_router(inputs.router)
 api_router.include_router(analyze.router)

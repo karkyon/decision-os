@@ -10,6 +10,7 @@ import InputDetail from '@/pages/InputDetail'
 import Login from '@/pages/Login'
 import UserManagement from '@/pages/UserManagement'
 import WorkspaceSelect from '@/pages/WorkspaceSelect'
+import InviteAccept from '@/pages/InviteAccept'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('access_token')
@@ -20,6 +21,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/invite" element={<InviteAccept />} />
       <Route path="/workspaces" element={
         <PrivateRoute><WorkspaceSelect /></PrivateRoute>
       } />

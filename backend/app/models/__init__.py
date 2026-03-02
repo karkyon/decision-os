@@ -1,3 +1,4 @@
+from .invite_token import InviteToken
 from .tenant import Tenant
 from .base import Base
 from .user import User
