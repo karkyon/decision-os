@@ -33,6 +33,9 @@ def register(payload: UserRegister, db: Session = Depends(get_db)):
     db.refresh(user)
     access_token = create_access_token({"sub": user.id})
     refresh_token = create_refresh_token({"sub": user.id})
+    # TOTP check: 2FA 有効ユーザは totp_required=True で早期リターン
+    if user.totp_secret:
+        return {"totp_required": True, "access_token": "", "refresh_token": ""}
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,

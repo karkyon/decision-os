@@ -11,8 +11,8 @@ import Login from '@/pages/Login'
 import UserManagement from '@/pages/UserManagement'
 import WorkspaceSelect from '@/pages/WorkspaceSelect'
 import InviteAccept from '@/pages/InviteAccept'
-import TOTPSetup from '@/pages/TOTPSetup'
-import TOTPLogin from '@/pages/TOTPLogin'
+import TOTPSetup from './pages/TOTPSetup';
+import TOTPLogin from './pages/TOTPLogin';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('access_token')
@@ -22,15 +22,11 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<Login />
       <Route path="/invite" element={<InviteAccept />} />
       <Route path="/workspaces" element={
         <PrivateRoute><WorkspaceSelect /></PrivateRoute>
       } />
-      <Route path="/totp-setup" element={
-        <PrivateRoute><TOTPSetup /></PrivateRoute>
-      } />
-      <Route path="/totp-login" element={<TOTPLogin />} />
       <Route
         path="/"
         element={
@@ -48,6 +44,8 @@ export default function App() {
         <Route path="inputs/:id" element={<InputDetail />} />
         <Route path="users" element={<UserManagement />} />
       </Route>
-    </Routes>
+            <Route path="/totp-setup" element={<TOTPSetup />} />
+        <Route path="/totp-login" element={<TOTPLogin />} />
+      </Routes>
   )
 }

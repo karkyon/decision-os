@@ -16,4 +16,17 @@ class Settings(BaseSettings):
         env_file = ".env"
         extra = "ignore"
 
+    # SSO: Google OAuth2 (A-002)
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_REDIRECT_URI: str = "http://localhost:8089/api/v1/auth/google/callback"
+
+    # SSO: GitHub OAuth2 (A-002)
+    GITHUB_CLIENT_ID: str = ""
+    GITHUB_CLIENT_SECRET: str = ""
+    GITHUB_REDIRECT_URI: str = "http://localhost:8089/api/v1/auth/github/callback"
+
+    # TOTP 2FA (A-003)
+    TOTP_ISSUER: str = "decision-os"
+
 settings = Settings()
