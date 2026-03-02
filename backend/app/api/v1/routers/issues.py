@@ -41,6 +41,9 @@ def list_issues(
 ):
     q_obj = db.query(Issue)
 
+    # tenant_id（テナント分離）
+    if current_user.tenant_id:
+        q_obj = q_obj.filter(Issue.tenant_id == str(current_user.tenant_id))
     # project_id
     if project_id:
         q_obj = q_obj.filter(Issue.project_id == project_id)

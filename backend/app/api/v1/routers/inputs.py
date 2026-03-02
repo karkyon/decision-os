@@ -49,7 +49,8 @@ def get_input(
 ):
     inp = db.query(Input).filter(
         Input.id == input_id,
-        Input.deleted_at == None
+        Input.deleted_at == None,
+        Input.tenant_id == str(current_user.tenant_id)
     ).first()
     if not inp:
         raise HTTPException(status_code=404, detail="Input not found")
@@ -65,6 +66,8 @@ def list_inputs(
     current_user: User = Depends(get_current_user),
 ):
     query = db.query(Input).filter(Input.deleted_at == None)
+    if current_user.tenant_id:
+        query = query.filter(Input.tenant_id == str(current_user.tenant_id))
     if project_id:
         query = query.filter(Input.project_id == project_id)
     return query.order_by(Input.created_at.desc()).offset(skip).limit(limit).all()

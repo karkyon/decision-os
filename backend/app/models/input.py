@@ -15,6 +15,7 @@ class Input(Base):
     importance = Column(String(1), default="3")  # 1-5
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     deleted_at = Column(DateTime(timezone=True))  # 論理削除
+    tenant_id = Column(UUID(as_uuid=False), ForeignKey("tenants.id"), nullable=True, index=True)
 
     project = relationship("Project", back_populates="inputs")
     author = relationship("User", back_populates="inputs")

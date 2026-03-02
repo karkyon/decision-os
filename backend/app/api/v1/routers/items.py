@@ -17,6 +17,8 @@ def list_items(
     current_user: User = Depends(get_current_user),
 ):
     q = db.query(Item)
+    if current_user.tenant_id:
+        q = q.filter(Item.tenant_id == str(current_user.tenant_id))
     if input_id:
         q = q.filter(Item.input_id == input_id)
     return q.order_by(Item.position).all()

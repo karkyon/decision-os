@@ -31,4 +31,7 @@ def create_project(payload: ProjectCreate, db: Session = Depends(get_db), curren
 
 @router.get("", response_model=List[ProjectResponse])
 def list_projects(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.query(Project).filter(Project.status == "active").all()
+    q = db.query(Project).filter(Project.status == "active")
+    if current_user.tenant_id:
+        q = q.filter(Project.tenant_id == str(current_user.tenant_id))
+    return q.all()

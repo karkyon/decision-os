@@ -39,18 +39,15 @@ except Exception:
 count_items() {
   # count_items <json_string>  → リスト長を echo
   local json="$1"
-  echo "$json" | python3 -c '
+  echo "$json" | python3 -c "
 import json, sys
 try:
     d = json.load(sys.stdin)
-    if isinstance(d, list):
-        items = d
-    else:
-        items = d.get("items", d.get("issues", d.get("data", [])))
+    items = d if isinstance(d, list) else d.get('items', [])
     print(len(items))
 except Exception:
     print(0)
-' 2>/dev/null || echo 0
+" 2>/dev/null || echo 0
 }
 
 first_id() {
@@ -60,7 +57,7 @@ first_id() {
 import json, sys
 try:
     d = json.load(sys.stdin)
-    items = d if isinstance(d, list) else d.get("items", d.get("issues", d.get("data", [])))
+    items = d if isinstance(d, list) else d.get('items', [])
     print(items[0].get('id','') if items else '')
 except Exception:
     print('')
@@ -419,180 +416,6 @@ echo "  └───────────────────────
 PASS_COUNT=$((PASS_COUNT+1))
 
 # =============================================================================
-# =============================================================================
-section "13. テナント API確認"
-# =============================================================================
-
-info "テナント一覧取得..."
-TENANT_RESP=$(curl -s "${API}/tenants") || true
-TENANT_ID=$(echo "$TENANT_RESP" | python3 -c "
-import json,sys
-d=json.load(sys.stdin)
-t=d if isinstance(d,list) else d.get('items',[])
-print(t[0]['id'] if t else '')
-" 2>/dev/null || echo "")
-
-if [[ -n "$TENANT_ID" ]] && [[ "$TENANT_ID" != "null" ]]; then
-  success "テナント取得成功 → tenant_id: $TENANT_ID"
-  PASS_COUNT=$((PASS_COUNT+1))
-else
-  warn "テナント取得失敗"
-  FAIL_COUNT=$((FAIL_COUNT+1))
-fi
-
-# =============================================================================
-section "14. 招待フロー E2E（invite → verify → accept）"
-# =============================================================================
-
-INVITE_EMAIL="e2e_test_$(date +%s)@example.com"
-
-info "招待トークン発行 ($INVITE_EMAIL)..."
-INVITE_RESP=$(curl -s -X POST "${API}/auth/invite" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d "{\"email\":\"$INVITE_EMAIL\",\"role\":\"dev\"}") || true
-
-INVITE_TOKEN_VAL=$(echo "$INVITE_RESP" | python3 -c "
-import json,sys
-d=json.load(sys.stdin)
-print(d.get('token',''))
-" 2>/dev/null || echo "")
-
-if [[ -n "$INVITE_TOKEN_VAL" ]] && [[ "$INVITE_TOKEN_VAL" != "null" ]]; then
-  success "招待トークン発行成功"
-  PASS_COUNT=$((PASS_COUNT+1))
-else
-  warn "招待トークン発行失敗（role権限不足の可能性）"
-  info "  レスポンス: ${INVITE_RESP:0:200}"
-  FAIL_COUNT=$((FAIL_COUNT+1))
-  INVITE_TOKEN_VAL=""
-fi
-
-# 招待トークン検証
-if [[ -n "$INVITE_TOKEN_VAL" ]]; then
-  info "招待トークン検証..."
-  VERIFY_RESP=$(curl -s "${API}/auth/invite/${INVITE_TOKEN_VAL}") || true
-  VERIFY_EMAIL=$(echo "$VERIFY_RESP" | python3 -c "
-import json,sys
-d=json.load(sys.stdin)
-print(d.get('email',''))
-" 2>/dev/null || echo "")
-
-  if [[ "$VERIFY_EMAIL" == "$INVITE_EMAIL" ]]; then
-    success "招待トークン検証成功 → email: $VERIFY_EMAIL"
-    PASS_COUNT=$((PASS_COUNT+1))
-  else
-    warn "招待トークン検証失敗"
-    info "  レスポンス: ${VERIFY_RESP:0:200}"
-    FAIL_COUNT=$((FAIL_COUNT+1))
-  fi
-
-  # 招待受諾（アカウント作成）
-  info "招待受諾・アカウント作成..."
-  ACCEPT_RESP=$(curl -s -X POST "${API}/auth/invite/accept" \
-    -H "Content-Type: application/json" \
-    -d "{\"token\":\"$INVITE_TOKEN_VAL\",\"name\":\"E2Eテストユーザー\",\"password\":\"e2etest1234\"}") || true
-
-  ACCEPT_UID=$(echo "$ACCEPT_RESP" | python3 -c "
-import json,sys
-d=json.load(sys.stdin)
-print(d.get('user_id',''))
-" 2>/dev/null || echo "")
-
-  if [[ -n "$ACCEPT_UID" ]] && [[ "$ACCEPT_UID" != "null" ]]; then
-    success "招待受諾・アカウント作成成功 → user_id: $ACCEPT_UID"
-    PASS_COUNT=$((PASS_COUNT+1))
-  else
-    warn "招待受諾失敗"
-    info "  レスポンス: ${ACCEPT_RESP:0:200}"
-    FAIL_COUNT=$((FAIL_COUNT+1))
-  fi
-
-  # 作成したユーザーでログイン確認
-  info "招待ユーザーでログイン確認..."
-  NEW_LOGIN=$(curl -s -X POST "${API}/auth/login" \
-    -H "Content-Type: application/json" \
-    -d "{\"email\":\"$INVITE_EMAIL\",\"password\":\"e2etest1234\"}") || true
-
-  NEW_TOKEN=$(echo "$NEW_LOGIN" | python3 -c "
-import json,sys
-d=json.load(sys.stdin)
-print(d.get('access_token',''))
-" 2>/dev/null || echo "")
-
-  if [[ -n "$NEW_TOKEN" ]] && [[ "$NEW_TOKEN" != "null" ]]; then
-    success "招待ユーザーログイン成功"
-    PASS_COUNT=$((PASS_COUNT+1))
-  else
-    warn "招待ユーザーログイン失敗"
-    FAIL_COUNT=$((FAIL_COUNT+1))
-  fi
-fi
-
-# =============================================================================
-section "15. Refresh Token ローテーション確認"
-# =============================================================================
-
-info "ログインして Refresh Token 取得..."
-RT_LOGIN=$(curl -s -X POST "${API}/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{"email":"demo@example.com","password":"demo1234"}') || true
-
-REFRESH_TOKEN=$(echo "$RT_LOGIN" | python3 -c "
-import json,sys
-d=json.load(sys.stdin)
-print(d.get('refresh_token',''))
-" 2>/dev/null || echo "")
-
-if [[ -n "$REFRESH_TOKEN" ]] && [[ "$REFRESH_TOKEN" != "null" ]]; then
-  info "Refresh Token でアクセストークン更新..."
-  REFRESH_RESP=$(curl -s -X POST "${API}/auth/refresh" \
-    -H "Content-Type: application/json" \
-    -d "{\"refresh_token\":\"$REFRESH_TOKEN\"}") || true
-
-  NEW_ACCESS=$(echo "$REFRESH_RESP" | python3 -c "
-import json,sys
-d=json.load(sys.stdin)
-print(d.get('access_token',''))
-" 2>/dev/null || echo "")
-
-  if [[ -n "$NEW_ACCESS" ]] && [[ "$NEW_ACCESS" != "null" ]]; then
-    success "Refresh Token ローテーション成功"
-    PASS_COUNT=$((PASS_COUNT+1))
-  else
-    warn "Refresh Token 更新失敗"
-    info "  レスポンス: ${REFRESH_RESP:0:200}"
-    FAIL_COUNT=$((FAIL_COUNT+1))
-  fi
-else
-  warn "Refresh Token が取得できませんでした（ログインレスポンス確認要）"
-  FAIL_COUNT=$((FAIL_COUNT+1))
-fi
-
-# =============================================================================
-section "16. 招待一覧確認（admin/pm権限）"
-# =============================================================================
-
-info "招待一覧取得..."
-INVITES_RESP=$(curl -s "${API}/auth/invites" \
-  -H "Authorization: Bearer $TOKEN") || true
-
-INVITE_COUNT=$(echo "$INVITES_RESP" | python3 -c "
-import json,sys
-d=json.load(sys.stdin)
-l=d if isinstance(d,list) else []
-print(len(l))
-" 2>/dev/null || echo "0")
-
-if [[ "$INVITE_COUNT" -gt 0 ]]; then
-  success "招待一覧取得成功 → ${INVITE_COUNT}件"
-  PASS_COUNT=$((PASS_COUNT+1))
-else
-  warn "招待一覧が0件または取得失敗"
-  info "  レスポンス: ${INVITES_RESP:0:200}"
-  FAIL_COUNT=$((FAIL_COUNT+1))
-fi
-
 section "テスト結果サマリー"
 # =============================================================================
 
