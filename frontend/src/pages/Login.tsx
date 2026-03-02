@@ -18,7 +18,7 @@ export default function Login() {
       const token = res.data.access_token
       if (!token) throw new Error('no token')
       localStorage.setItem('access_token', token)
-      navigate('/')
+      navigate('/workspaces')
     } catch (e: unknown) {
       const detail = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail
       setError(typeof detail === 'string' ? detail : 'ログインに失敗しました')

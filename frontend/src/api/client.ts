@@ -5,7 +5,8 @@ const API_BASE = "/api/v1";
 const client = axios.create({ baseURL: API_BASE });
 
 client.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  // "token" と "access_token" 両方に対応
+  const token = localStorage.getItem("token") ?? localStorage.getItem("access_token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -15,6 +16,7 @@ client.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem("token");
+      localStorage.removeItem("access_token"); // こっちも消す
       window.location.href = "/login";
     }
     return Promise.reject(err);

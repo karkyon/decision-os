@@ -1,3 +1,4 @@
+from .tenant import Tenant
 from .base import Base
 from .user import User
 from .project import Project
@@ -12,6 +13,7 @@ from .learning_log import LearningLog
 from .audit_log import AuditLog
 
 __all__ = [
+    "Tenant",
     "Base", "User", "Project", "Input", "Interpretation",
     "Item", "Action", "Issue", "Decision", "Conversation",
     "LearningLog", "AuditLog",

@@ -48,7 +48,7 @@ const SOURCE_META: Record<string, { icon: React.ElementType; label: string; colo
   voice:   { icon: Mic,            label: '音声',     color: '#a78bfa' },
   meeting: { icon: Users,          label: '会議',     color: '#34d399' },
   bug:     { icon: Bug,            label: 'バグ報告', color: '#f87171' },
-  other:   { icon: MoreHorizontal, label: 'その他',   color: '#94a3b8' },
+  other:   { icon: MoreHorizontal, label: 'その他',   color: 'var(--text-muted)' },
 }
 
 const INTENT_LABEL: Record<string, { label: string; color: string }> = {
@@ -56,10 +56,10 @@ const INTENT_LABEL: Record<string, { label: string; color: string }> = {
   BUG: { label: 'バグ',   color: '#f87171' },
   IMP: { label: '改善',   color: '#fbbf24' },
   QST: { label: '質問',   color: '#34d399' },
-  FBK: { label: 'FBK',   color: '#94a3b8' },
-  INF: { label: '情報',   color: '#64748b' },
+  FBK: { label: 'FBK',   color: 'var(--text-muted)' },
+  INF: { label: '情報',   color: 'var(--text-secondary, #64748b)' },
   MIS: { label: '誤解',   color: '#f97316' },
-  OTH: { label: 'その他', color: '#475569' },
+  OTH: { label: 'その他', color: 'var(--text-secondary, #64748b)' },
 }
 
 const ACTION_LABEL: Record<string, { label: string; color: string; bg: string }> = {
@@ -68,7 +68,7 @@ const ACTION_LABEL: Record<string, { label: string; color: string; bg: string }>
   STORE:         { label: '保存',    color: '#60a5fa', bg: 'rgba(59,130,246,0.15)' },
   REJECT:        { label: '却下',    color: '#f87171', bg: 'rgba(239,68,68,0.15)'  },
   HOLD:          { label: '保留',    color: '#fbbf24', bg: 'rgba(245,158,11,0.15)' },
-  LINK_EXISTING: { label: '既存紐付', color: '#94a3b8', bg: 'rgba(100,116,139,0.15)'},
+  LINK_EXISTING: { label: '既存紐付', color: 'var(--text-muted)', bg: 'rgba(100,116,139,0.15)'},
 }
 
 /* ── データ取得 ──────────────────────────────────────────── */
@@ -120,7 +120,7 @@ function LinkedIssue({ issueId }: { issueId: string }) {
   })
 
   if (isLoading) return (
-    <span style={{ fontSize: 12, color: '#64748b' }}>読み込み中...</span>
+    <span style={{ fontSize: 12, color: 'var(--text-secondary, #64748b)' }}>読み込み中...</span>
   )
   if (!issue) return null
 
@@ -153,7 +153,7 @@ export default function InputDetail() {
   })
 
   if (isLoading) return (
-    <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>
+    <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-secondary, #64748b)' }}>
       <Loader2 size={24} style={{ margin: '0 auto 12px', display: 'block', animation: 'spin 1s linear infinite' }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       解析連鎖を構築中...
@@ -176,7 +176,7 @@ export default function InputDetail() {
       {/* Back */}
       <Link
         to="/inputs"
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#64748b', textDecoration: 'none', fontSize: 13, marginBottom: 20 }}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-secondary, #64748b)', textDecoration: 'none', fontSize: 13, marginBottom: 20 }}
       >
         <ArrowLeft size={14} /> 要望履歴に戻る
       </Link>
@@ -194,18 +194,18 @@ export default function InputDetail() {
             <div style={{ fontSize: 11, color: src.color, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
               📄 INPUT — {src.label}
             </div>
-            <div style={{ fontSize: 11, color: '#64748b', fontFamily: 'DM Mono, monospace', marginTop: 2 }}>
+            <div style={{ fontSize: 11, color: 'var(--text-secondary, #64748b)', fontFamily: 'DM Mono, monospace', marginTop: 2 }}>
               {new Date(input.created_at).toLocaleString('ja-JP')}
               {input.author_name || input.author ? `  /  ${input.author_name ?? input.author}` : ''}
             </div>
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 11, color: '#64748b' }}>分解 ITEM</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#94a3b8' }}>{items.length}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-secondary, #64748b)' }}>分解 ITEM</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-muted)' }}>{items.length}</div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 11, color: '#64748b' }}>発生課題</div>
+              <div style={{ fontSize: 11, color: 'var(--text-secondary, #64748b)' }}>発生課題</div>
               <div style={{ fontSize: 18, fontWeight: 700, color: '#818cf8' }}>{issueCount}</div>
             </div>
           </div>
@@ -241,18 +241,18 @@ export default function InputDetail() {
 
       {/* ── ITEM → ACTION → ISSUE 連鎖 ── */}
       <div style={{ marginBottom: 12 }}>
-        <h2 style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 700, color: '#64748b', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+        <h2 style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 700, color: 'var(--text-secondary, #64748b)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
           分解結果 — {items.length} ITEM
         </h2>
 
         {items.length === 0 ? (
-          <div className="card" style={{ padding: '32px', textAlign: 'center', color: '#64748b', fontSize: 13 }}>
+          <div className="card" style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary, #64748b)', fontSize: 13 }}>
             このINPUTはまだ解析されていません
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {items.map((item, idx) => {
-              const intent = INTENT_LABEL[item.intent_code] ?? { label: item.intent_code, color: '#94a3b8' }
+              const intent = INTENT_LABEL[item.intent_code] ?? { label: item.intent_code, color: 'var(--text-muted)' }
               const act = item.action ? (ACTION_LABEL[item.action.action_type] ?? null) : null
 
               return (
@@ -263,7 +263,7 @@ export default function InputDetail() {
                       width: 22, height: 22, borderRadius: 6, flexShrink: 0,
                       background: '#2d3548',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 11, fontWeight: 700, color: '#64748b',
+                      fontSize: 11, fontWeight: 700, color: 'var(--text-secondary, #64748b)',
                       fontFamily: 'DM Mono, monospace', marginTop: 1,
                     }}>
                       {idx + 1}
@@ -275,16 +275,16 @@ export default function InputDetail() {
                         <span className="badge" style={{ background: `${intent.color}22`, color: intent.color }}>
                           {intent.label}
                         </span>
-                        <span className="badge" style={{ background: 'rgba(100,116,139,0.15)', color: '#94a3b8' }}>
+                        <span className="badge" style={{ background: 'rgba(100,116,139,0.15)', color: 'var(--text-muted)' }}>
                           {item.domain_code}
                         </span>
-                        <span style={{ fontSize: 11, color: '#475569', fontFamily: 'DM Mono, monospace' }}>
+                        <span style={{ fontSize: 11, color: 'var(--text-secondary, #64748b)', fontFamily: 'DM Mono, monospace' }}>
                           信頼度 {Math.round(item.confidence * 100)}%
                         </span>
                       </div>
 
                       {/* Item text */}
-                      <p style={{ margin: '0 0 8px', fontSize: 13, color: '#e2e8f0', lineHeight: 1.6 }}>
+                      <p style={{ margin: '0 0 8px', fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.6 }}>
                         {item.text}
                       </p>
 
@@ -292,12 +292,12 @@ export default function InputDetail() {
                       {item.action && act && (
                         <div style={{ borderTop: '1px solid #1e2535', paddingTop: 8, marginTop: 4 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: 11, color: '#475569' }}>→ ACTION:</span>
+                            <span style={{ fontSize: 11, color: 'var(--text-secondary, #64748b)' }}>→ ACTION:</span>
                             <span className="badge" style={{ background: act.bg, color: act.color }}>
                               {act.label}
                             </span>
                             {item.action.decision_reason && (
-                              <span style={{ fontSize: 12, color: '#64748b', fontStyle: 'italic' }}>
+                              <span style={{ fontSize: 12, color: 'var(--text-secondary, #64748b)', fontStyle: 'italic' }}>
                                 "{item.action.decision_reason}"
                               </span>
                             )}

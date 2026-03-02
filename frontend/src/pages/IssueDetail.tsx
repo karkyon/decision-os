@@ -32,13 +32,13 @@ const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> =
   in_progress: { label: '進行中',   color: '#60a5fa', bg: '#1e3a5f' },
   review:      { label: 'レビュー', color: '#a78bfa', bg: '#2e1065' },
   done:        { label: '完了',     color: '#4ade80', bg: '#14532d' },
-  closed:      { label: 'クローズ', color: '#94a3b8', bg: '#1e293b' },
+  closed:      { label: 'クローズ', color: 'var(--text-muted)', bg: '#1e293b' },
 }
 const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
   critical: { label: '緊急', color: '#ef4444' },
   high:     { label: '高',   color: '#f97316' },
   medium:   { label: '中',   color: '#eab308' },
-  low:      { label: '低',   color: '#64748b' },
+  low:      { label: '低',   color: 'var(--text-muted)' },
 }
 const STATUS_OPTIONS = ['open', 'in_progress', 'review', 'done', 'closed']
 
@@ -135,21 +135,21 @@ export default function IssueDetail() {
   }
 
   if (loading) return (
-    <div style={{ padding: '40px', color: '#64748b', textAlign: 'center' }}>🔄 読み込み中...</div>
+    <div style={{ padding: '40px', color: 'var(--text-muted)', textAlign: 'center' }}>🔄 読み込み中...</div>
   )
   if (error || !issue) return (
     <div style={{ padding: '40px', color: '#f87171', textAlign: 'center' }}>⚠️ {error || '課題が見つかりません'}</div>
   )
 
-  const si = STATUS_MAP[issue.status] ?? { label: issue.status, color: '#94a3b8', bg: '#1e293b' }
-  const pi = PRIORITY_MAP[issue.priority] ?? { label: issue.priority, color: '#94a3b8' }
+  const si = STATUS_MAP[issue.status] ?? { label: issue.status, color: 'var(--text-muted)', bg: '#1e293b' }
+  const pi = PRIORITY_MAP[issue.priority] ?? { label: issue.priority, color: 'var(--text-muted)' }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0f172a', color: '#e2e8f0' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-base)', color: 'var(--text-primary)' }}>
 
       {/* ── ナビバー ── */}
       <nav style={{
-        background: '#1e293b', borderBottom: '1px solid #334155',
+        background: 'var(--bg-card)', borderBottom: '1px solid var(--border)',
         padding: '0 24px', height: '52px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
@@ -157,11 +157,11 @@ export default function IssueDetail() {
           <button onClick={() => navigate('/')}
             style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '20px' }}>⚖️</button>
           <button onClick={() => navigate(-1)}
-            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '13px' }}>← 戻る</button>
-          <span style={{ color: '#475569', fontSize: '13px' }}>/ 課題詳細</span>
+            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '13px' }}>← 戻る</button>
+          <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>/ 課題詳細</span>
         </div>
         <button onClick={() => { authStore.logout(); navigate('/login') }}
-          style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '13px' }}>
+          style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '13px' }}>
           ログアウト
         </button>
       </nav>
@@ -172,7 +172,7 @@ export default function IssueDetail() {
         {/* ── 左カラム: 課題本体 ＋ コメント ── */}
         <div style={{
           flex: 1, overflowY: 'auto', padding: '28px 32px',
-          borderRight: '1px solid #334155',
+          borderRight: '1px solid var(--border)',
           display: 'flex', flexDirection: 'column', gap: '20px',
         }}>
 
@@ -194,7 +194,7 @@ export default function IssueDetail() {
                 {showStatusMenu && (
                   <div style={{
                     position: 'absolute', top: '100%', left: 0, zIndex: 100,
-                    background: '#1e293b', border: '1px solid #334155', borderRadius: '8px',
+                    background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px',
                     overflow: 'hidden', marginTop: '4px', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
                   }}>
                     {STATUS_OPTIONS.map(s => (
@@ -213,27 +213,27 @@ export default function IssueDetail() {
               </div>
               <span style={{
                 padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600',
-                background: '#1e293b', border: '1px solid #334155', color: pi.color,
+                background: 'var(--bg-card)', border: '1px solid var(--border)', color: pi.color,
               }}>
                 {pi.label}
               </span>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                 {new Date(issue.created_at).toLocaleDateString('ja-JP')}
               </span>
             </div>
           </div>
 
           {/* 説明 */}
-          <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '10px', padding: '20px' }}>
-            <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px', fontWeight: '600' }}>📝 説明</div>
-            <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.7, color: '#cbd5e1', whiteSpace: 'pre-wrap' }}>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', padding: '20px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: '600' }}>📝 説明</div>
+            <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.7, color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>
               {issue.description || '（説明なし）'}
             </p>
           </div>
 
           {/* メタ情報 */}
-          <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '10px', padding: '20px' }}>
-            <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px', fontWeight: '600' }}>📊 詳細情報</div>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', padding: '20px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px', fontWeight: '600' }}>📊 詳細情報</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               {[
                 ['種別', issue.issue_type ?? '—'],
@@ -242,23 +242,23 @@ export default function IssueDetail() {
                 ['更新日', new Date(issue.updated_at).toLocaleDateString('ja-JP')],
               ].map(([label, val]) => (
                 <div key={label}>
-                  <div style={{ fontSize: '11px', color: '#475569', marginBottom: '2px' }}>{label}</div>
-                  <div style={{ fontSize: '13px', color: '#cbd5e1' }}>{val}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>{label}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{val}</div>
                 </div>
               ))}
             </div>
           </div>
 
           {/* ── コメントスレッド ── */}
-          <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '10px', padding: '20px' }}>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', padding: '20px' }}>
             <div style={{ fontSize: '14px', fontWeight: '700', color: '#f1f5f9', marginBottom: '16px' }}>
-              💬 コメント <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '400' }}>({comments.length}件)</span>
+              💬 コメント <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '400' }}>({comments.length}件)</span>
             </div>
 
             {/* コメント一覧 */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
               {comments.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '24px', color: '#475569', fontSize: '13px' }}>
+                <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '13px' }}>
                   まだコメントはありません
                 </div>
               ) : comments.map(c => {
@@ -268,7 +268,7 @@ export default function IssueDetail() {
 
                 return (
                   <div key={c.id} style={{
-                    background: '#0f172a', border: `1px solid ${isOwn ? '#1e3a5f' : '#334155'}`,
+                    background: 'var(--bg-base)', border: `1px solid ${isOwn ? '#1e3a5f' : '#334155'}`,
                     borderRadius: '8px', padding: '12px 14px',
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
@@ -276,17 +276,17 @@ export default function IssueDetail() {
                         {isOwn ? '👤 ' : ''}{authorName}
                       </span>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <span style={{ fontSize: '11px', color: '#475569' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                           {new Date(c.created_at).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </span>
                         {isOwn && !isEditing && (
                           <>
                             <button onClick={() => { setEditingId(c.id); setEditBody(c.body) }}
-                              style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '12px' }}>
+                              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '12px' }}>
                               ✏️
                             </button>
                             <button onClick={() => deleteComment(c.id)}
-                              style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '12px' }}>
+                              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '12px' }}>
                               🗑
                             </button>
                           </>
@@ -301,14 +301,14 @@ export default function IssueDetail() {
                           onChange={e => setEditBody(e.target.value)}
                           rows={3}
                           style={{
-                            width: '100%', background: '#1e293b', border: '1px solid #475569',
-                            borderRadius: '6px', padding: '8px', color: '#e2e8f0',
+                            width: '100%', background: 'var(--bg-card)', border: '1px solid #475569',
+                            borderRadius: '6px', padding: '8px', color: 'var(--text-primary)',
                             fontSize: '13px', resize: 'vertical', boxSizing: 'border-box',
                           }}
                         />
                         <div style={{ display: 'flex', gap: '8px', marginTop: '6px', justifyContent: 'flex-end' }}>
                           <button onClick={() => setEditingId(null)}
-                            style={{ padding: '4px 12px', borderRadius: '6px', background: 'transparent', border: '1px solid #334155', color: '#94a3b8', cursor: 'pointer', fontSize: '12px' }}>
+                            style={{ padding: '4px 12px', borderRadius: '6px', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '12px' }}>
                             キャンセル
                           </button>
                           <button onClick={() => saveEdit(c)}
@@ -318,7 +318,7 @@ export default function IssueDetail() {
                         </div>
                       </div>
                     ) : (
-                      <p style={{ margin: 0, fontSize: '13px', color: '#cbd5e1', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                      <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-primary)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
                         {c.body}
                       </p>
                     )}
@@ -340,8 +340,8 @@ export default function IssueDetail() {
                 placeholder="コメントを入力... (Ctrl+Enter で送信)"
                 rows={3}
                 style={{
-                  flex: 1, background: '#0f172a', border: '1px solid #334155',
-                  borderRadius: '8px', padding: '10px 12px', color: '#e2e8f0',
+                  flex: 1, background: 'var(--bg-base)', border: '1px solid var(--border)',
+                  borderRadius: '8px', padding: '10px 12px', color: 'var(--text-primary)',
                   fontSize: '13px', resize: 'vertical', boxSizing: 'border-box',
                 }}
               />
@@ -370,13 +370,13 @@ export default function IssueDetail() {
         }}>
           <div style={{ fontSize: '14px', fontWeight: '700', color: '#f1f5f9', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             🔗 意思決定トレーサー
-            <span style={{ fontSize: '11px', color: '#475569', fontWeight: '400' }}>原点を追跡</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '400' }}>原点を追跡</span>
           </div>
 
           {_traceLoading ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#64748b', fontSize: '13px' }}>🔄 追跡中...</div>
+            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)', fontSize: '13px' }}>🔄 追跡中...</div>
           ) : traceError && !trace ? (
-            <div style={{ padding: '16px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334155', color: '#64748b', fontSize: '13px' }}>
+            <div style={{ padding: '16px', borderRadius: '8px', background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: '13px' }}>
               トレースデータがありません<br/>
               <span style={{ fontSize: '11px' }}>INPUTから直接作成された課題の場合、トレースは表示されません。</span>
             </div>
@@ -404,19 +404,19 @@ export default function IssueDetail() {
 
               {trace.input && <>
                 <TraceArrow reason="原文" />
-                <div style={{ background: '#1e293b', border: '2px solid #f59e0b', borderRadius: '10px', overflow: 'hidden' }}>
-                  <div style={{ padding: '10px 14px', borderBottom: '1px solid #334155' }}>
+                <div style={{ background: 'var(--bg-card)', border: '2px solid #f59e0b', borderRadius: '10px', overflow: 'hidden' }}>
+                  <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)' }}>
                     <div style={{ fontSize: '10px', color: '#f59e0b', fontWeight: '700', marginBottom: '2px' }}>
                       📄 INPUT — {trace.input.source_type}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                       {new Date(trace.input.created_at).toLocaleDateString('ja-JP')}
                       {trace.input.author && ` / ${trace.input.author}`}
                     </div>
                   </div>
                   <div style={{ padding: '12px 14px' }}>
                     <p style={{
-                      margin: 0, fontSize: '13px', color: '#cbd5e1', lineHeight: 1.6,
+                      margin: 0, fontSize: '13px', color: 'var(--text-primary)', lineHeight: 1.6,
                       whiteSpace: 'pre-wrap',
                       maxHeight: inputExpanded ? 'none' : '120px',
                       overflow: inputExpanded ? 'visible' : 'hidden',
@@ -447,7 +447,7 @@ function TraceArrow({ reason }: { reason: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', padding: '2px 14px', gap: '6px' }}>
       <div style={{ width: '2px', height: '20px', background: '#334155', margin: '0 auto' }} />
-      <span style={{ fontSize: '10px', color: '#475569' }}>{reason}</span>
+      <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{reason}</span>
     </div>
   )
 }
@@ -456,13 +456,13 @@ function TraceNode({ icon, label, color, title, body, meta }: {
   icon: string; label: string; color: string; title: string; body?: string; meta?: string
 }) {
   return (
-    <div style={{ background: '#1e293b', border: `2px solid ${color}`, borderRadius: '10px', padding: '12px 14px' }}>
+    <div style={{ background: 'var(--bg-card)', border: `2px solid ${color}`, borderRadius: '10px', padding: '12px 14px' }}>
       <div style={{ fontSize: '10px', color, fontWeight: '700', marginBottom: '6px', letterSpacing: '0.05em' }}>
         {icon} {label}
       </div>
       <div style={{ fontSize: '13px', color: '#f1f5f9', fontWeight: '500', lineHeight: 1.5 }}>{title}</div>
-      {body && <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px', lineHeight: 1.5 }}>{body}</div>}
-      {meta && <div style={{ fontSize: '11px', color: '#475569', marginTop: '6px' }}>{meta}</div>}
+      {body && <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.5 }}>{body}</div>}
+      {meta && <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>{meta}</div>}
     </div>
   )
 }
