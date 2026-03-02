@@ -1,3 +1,4 @@
+from app.core.audit import log_action
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from ....core.deps import get_db, get_current_user
@@ -35,7 +36,8 @@ def register(payload: UserRegister, db: Session = Depends(get_db)):
     refresh_token = create_refresh_token({"sub": user.id})
     # TOTP check: 2FA 有効ユーザは totp_required=True で早期リターン
     if user.totp_secret:
-        return {"totp_required": True, "access_token": "", "refresh_token": ""}
+        log_action(db, action="LOGIN", user=user, entity_type="user", entity_id=user.id, detail={"email": user.email})
+    return {"totp_required": True, "access_token": "", "refresh_token": ""}
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,

@@ -1,3 +1,5 @@
+from app.core.deps import require_admin, get_current_user
+from app.db.session import get_db
 """
 Users Router - ユーザー管理（Admin専用）
 GET  /api/v1/users           - ユーザー一覧（Admin）
@@ -62,8 +64,8 @@ async def get_me(
 
 @router.get("", response_model=List[UserOut])
 async def list_users(
-    db=None,
-    current_user=None,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin()),
 ):
     """ユーザー一覧（Admin のみ）"""
     if db is None or current_user is None:
@@ -80,8 +82,8 @@ async def list_users(
 async def update_role(
     user_id: str,
     body: RoleUpdate,
-    db=None,
-    current_user=None,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin()),
 ):
     """ロール変更（Admin のみ）"""
     if db is None or current_user is None:
@@ -111,3 +113,16 @@ async def update_role(
         "role": user.role,
         "message": f"ロールを {old_role} → {body.role} に変更しました"
     }
+
+@router.get("/assignees", response_model=List[UserOut])
+async def list_assignees(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """担当者候補一覧（pm 以上が利用可）- InputNew / IssueDetail 用"""
+    from app.core.deps import is_pm_or_above
+    if not is_pm_or_above(current_user):
+        raise HTTPException(status_code=403, detail="PM以上の権限が必要です")
+    from app.models.user import User
+    users = db.query(User).filter(User.tenant_id == current_user.tenant_id).all()
+    return users

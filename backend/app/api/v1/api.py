@@ -7,7 +7,7 @@ from .routers.decisions import router as decisions_router
 from .routers.users import router as users_router
 from .routers.dictionary import router as dictionary_router
 from .tenants import router as tenants_router
-from app.api.v1.routers import sso
+from app.api.v1.routers import sso, project_members, audit_logs
 
 api_router = APIRouter()
 api_router.include_router(auth.router)
@@ -29,3 +29,5 @@ api_router.include_router(users_router)
 api_router.include_router(dictionary_router)
 api_router.include_router(tenants_router, tags=["tenants"])
 api_router.include_router(sso.router)
+api_router.include_router(project_members.router, tags=["project-members"])
+api_router.include_router(audit_logs.router, tags=["audit-logs"])

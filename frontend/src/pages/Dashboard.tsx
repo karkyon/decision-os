@@ -12,7 +12,7 @@ interface DashboardStats {
 }
 
 async function fetchStats(): Promise<DashboardStats> {
-  const res = await apiClient.get('/dashboard/stats').catch(() => ({ data: {} }))
+  const res = await apiClient.get('/dashboard/counts').catch(() => ({ data: {} }))
   return res.data ?? {}
 }
 

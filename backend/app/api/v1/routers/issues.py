@@ -1,3 +1,4 @@
+from app.core.audit import log_action
 """
 Issues router
 GET    /issues  複合フィルター対応

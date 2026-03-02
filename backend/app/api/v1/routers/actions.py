@@ -1,3 +1,4 @@
+from app.core.audit import log_action
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -152,3 +153,27 @@ def convert_action_to_issue(
         db.commit()
 
     return issue
+
+@router.get("", response_model=list)
+async def list_actions(
+    item_id: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """ACTION一覧取得（item_id でフィルタ可能）"""
+    from app.models.action import Action
+    q = db.query(Action).filter(Action.tenant_id == current_user.tenant_id)
+    if item_id:
+        q = q.filter(Action.item_id == item_id)
+    actions = q.all()
+    result = []
+    for a in actions:
+        result.append({
+            "id": str(a.id),
+            "item_id": str(a.item_id) if a.item_id else None,
+            "action_type": getattr(a, "action_type", None),
+            "status": getattr(a, "status", None),
+            "decided_by": str(a.decided_by) if getattr(a, "decided_by", None) else None,
+            "created_at": str(a.created_at) if getattr(a, "created_at", None) else None,
+        })
+    return result

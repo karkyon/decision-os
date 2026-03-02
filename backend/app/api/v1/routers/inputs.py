@@ -1,3 +1,4 @@
+from app.core.audit import log_action
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
