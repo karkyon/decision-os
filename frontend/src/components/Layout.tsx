@@ -1,3 +1,4 @@
+import GlobalSearch from './GlobalSearch';
 import { useState, useEffect, useRef } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import {
@@ -194,7 +195,8 @@ export default function Layout() {
           padding: '0 24px', borderBottom: '1px solid var(--border)',
           background: 'var(--bg-main)', position: 'sticky', top: 0, zIndex: 40,
         }}>
-          <Bell size={18} style={{ color: 'var(--text-muted)', cursor: 'pointer' }} />
+          <GlobalSearch />
+          <Bell size={18} style={{ color: 'var(--text-muted)', cursor: 'pointer', marginLeft: 16 }} />
           <div style={{
             marginLeft: 16, width: 32, height: 32, borderRadius: '50%',
             background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
@@ -252,10 +254,7 @@ export default function Layout() {
                   position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
                   color: 'var(--text-muted)',
                 }} />
-                <input
-                  ref={searchRef}
-                  value={query}
-                  onChange={e => onQuery(e.target.value)}
+                
                   placeholder="プロジェクトを検索..."
                   style={{
                     width: '100%', padding: '8px 12px 8px 32px',

@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import SearchPage from './pages/SearchPage';
 import Layout from '@/components/Layout'
 import Dashboard from '@/pages/Dashboard'
 import ProjectList from '@/pages/ProjectList'

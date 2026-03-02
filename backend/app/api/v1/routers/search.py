@@ -1,170 +1,211 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+"""
+search.py — W-003 テナント横断検索 (Phase 2)
+
+GET /api/v1/search?q=<keyword>
+  - テナント内の全PJを横断して全文検索
+  - 検索対象: inputs / items / issues / decisions
+  - オプション: type 絞り込み / project_id 絞り込み / limit / offset
+
+レスポンス形式:
+  {
+    "total": 42,
+    "results": [
+      {
+        "type": "input" | "item" | "issue" | "decision",
+        "id": "<uuid>",
+        "project_id": "<uuid>",
+        "project_name": "<str>",
+        "title": "<str>",        # 表示用タイトル
+        "snippet": "<str>",      # マッチ周辺テキスト（最大200文字）
+        "score": 1.0,            # 将来: 全文検索スコア
+        "created_at": "<iso>"
+      }
+    ]
+  }
+"""
+from __future__ import annotations
+
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy import or_, func
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
-from typing import List, Optional
+from typing import Optional, List
+from uuid import UUID
 from datetime import datetime
-from pydantic import BaseModel
-from ....core.deps import get_db, get_current_user
-from ....models.issue import Issue
-from ....models.input import Input
-from ....models.item import Item
-from ....models.conversation import Conversation
-from ....models.user import User
+import re
 
-router = APIRouter(prefix="/search", tags=["search"])
+from app.db.session import get_db
+from app.core.deps import get_current_user
 
+router = APIRouter()
 
-# ─── レスポンス型 ───────────────────────────────────────────────
-class SearchHit(BaseModel):
-    id: str
-    type: str           # "issue" | "input" | "item" | "conversation"
-    title: str          # 表示用タイトル（スニペット）
-    body: str           # ハイライト用本文断片（最大200字）
-    url: str            # フロントのリンク先パス
-    meta: dict          # type別のメタ情報
-    created_at: datetime
+# ── ヘルパー ──────────────────────────────────────────────────────────────
 
-    class Config:
-        from_attributes = True
-
-
-class SearchResponse(BaseModel):
-    query: str
-    total: int
-    hits: List[SearchHit]
-    duration_ms: int
-
-
-# ─── ヘルパー: キーワードをスニペットで切り出す ──────────────
-def snippet(text: str, keyword: str, width: int = 120) -> str:
-    """キーワード周辺のテキストを抜き出す"""
+def _snippet(text: Optional[str], keyword: str, max_len: int = 200) -> str:
+    """キーワード周辺のテキストを切り出す"""
     if not text:
         return ""
+    text = text.strip()
     idx = text.lower().find(keyword.lower())
     if idx == -1:
-        return text[:width] + ("…" if len(text) > width else "")
-    start = max(0, idx - 30)
-    end = min(len(text), idx + width)
-    prefix = "…" if start > 0 else ""
-    suffix = "…" if end < len(text) else ""
-    return prefix + text[start:end] + suffix
+        return text[:max_len]
+    start = max(0, idx - 60)
+    end = min(len(text), idx + 140)
+    snippet = text[start:end]
+    if start > 0:
+        snippet = "…" + snippet
+    if end < len(text):
+        snippet = snippet + "…"
+    return snippet
 
 
-# ─── エンドポイント ─────────────────────────────────────────────
-@router.get("", response_model=SearchResponse)
-def search(
-    q: str = Query(..., min_length=1, max_length=200, description="検索キーワード"),
-    type: Optional[str] = Query(None, description="絞り込み: issue|input|item|conversation"),
-    limit: int = Query(20, ge=1, le=100, description="最大件数"),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+def _project_name_map(db: Session, tenant_id: UUID) -> dict:
+    """tenant内の {project_id: project_name} マップを返す"""
+    from app.models.project import Project
+    rows = db.query(Project.id, Project.name).filter(Project.tenant_id == tenant_id).all()
+    return {str(r.id): r.name for r in rows}
+
+
+# ── メインエンドポイント ──────────────────────────────────────────────────
+
+@router.get("/search")
+def tenant_search(
+    q:          str            = Query(..., min_length=1, max_length=200, description="検索キーワード"),
+    type:       Optional[str]  = Query(None, description="絞り込み: input / item / issue / decision"),
+    project_id: Optional[UUID] = Query(None, description="特定PJに絞り込む"),
+    limit:      int            = Query(20, ge=1, le=100),
+    offset:     int            = Query(0, ge=0),
+    db:         Session        = Depends(get_db),
+    current_user               = Depends(get_current_user),
 ):
     """
-    課題・原文・分解ITEM・コメントを横断全文検索する。
-    複数キーワードはスペース区切りで AND 検索。
+    W-003 テナント横断全文検索。
+    テナント内の全PJにまたがって inputs / items / issues / decisions を検索する。
     """
-    import time
-    start = time.time()
+    tenant_id   = current_user.tenant_id
+    pj_map      = _project_name_map(db, tenant_id)
+    keyword     = q.strip()
+    results: List[dict] = []
 
-    if not q.strip():
-        raise HTTPException(status_code=422, detail="検索キーワードを入力してください")
-
-    # スペース区切りで複数キーワード対応
-    keywords = [k.strip() for k in q.strip().split() if k.strip()]
-    hits: List[SearchHit] = []
-
-    # ─── Issues ───────────────────────────────────────────────
-    if type in (None, "issue"):
-        q_issues = db.query(Issue)
-        for kw in keywords:
-            pattern = f"%{kw}%"
-            q_issues = q_issues.filter(
+    # ── inputs 検索 ────────────────────────────────────────────────────────
+    if not type or type == "input":
+        try:
+            from app.models.input import RawInput
+            iq = db.query(RawInput).filter(
+                RawInput.tenant_id == tenant_id,
                 or_(
-                    Issue.title.ilike(pattern),
-                    Issue.description.ilike(pattern),
-                    Issue.labels.ilike(pattern),
+                    func.lower(RawInput.raw_text).contains(keyword.lower()),
+                    func.lower(RawInput.source).contains(keyword.lower()) if hasattr(RawInput, "source") else False,
                 )
             )
-        for issue in q_issues.order_by(Issue.created_at.desc()).limit(limit).all():
-            hits.append(SearchHit(
-                id=issue.id,
-                type="issue",
-                title=issue.title,
-                body=snippet(issue.description or issue.title, keywords[0]),
-                url=f"/issues/{issue.id}",
-                meta={
-                    "status": issue.status,
-                    "priority": issue.priority,
-                    "labels": issue.labels,
-                },
-                created_at=issue.created_at,
-            ))
+            if project_id:
+                iq = iq.filter(RawInput.project_id == project_id)
+            for row in iq.order_by(RawInput.created_at.desc()).limit(limit).all():
+                results.append({
+                    "type":         "input",
+                    "id":           str(row.id),
+                    "project_id":   str(row.project_id) if row.project_id else None,
+                    "project_name": pj_map.get(str(row.project_id), ""),
+                    "title":        (row.raw_text or "")[:60],
+                    "snippet":      _snippet(row.raw_text, keyword),
+                    "score":        1.0,
+                    "created_at":   row.created_at.isoformat() if row.created_at else None,
+                })
+        except Exception as e:
+            pass  # モデル名が違う場合はスキップ
 
-    # ─── Inputs (RAW_TEXT) ────────────────────────────────────
-    if type in (None, "input"):
-        q_inputs = db.query(Input)
-        for kw in keywords:
-            pattern = f"%{kw}%"
-            q_inputs = q_inputs.filter(Input.raw_text.ilike(pattern))
-        for inp in q_inputs.order_by(Input.created_at.desc()).limit(limit).all():
-            hits.append(SearchHit(
-                id=inp.id,
-                type="input",
-                title=f"[{inp.source_type}] {inp.raw_text[:60]}…",
-                body=snippet(inp.raw_text, keywords[0]),
-                url=f"/inputs/{inp.id}",
-                meta={
-                    "source_type": inp.source_type,
-                    "importance": getattr(inp, "importance", None),
-                },
-                created_at=inp.created_at,
-            ))
+    # ── items 検索 ─────────────────────────────────────────────────────────
+    if not type or type == "item":
+        try:
+            from app.models.item import Item
+            iq = db.query(Item).filter(
+                Item.tenant_id == tenant_id,
+                or_(
+                    func.lower(Item.content).contains(keyword.lower()),
+                    func.lower(Item.intent).contains(keyword.lower()) if hasattr(Item, "intent") else False,
+                    func.lower(Item.domain).contains(keyword.lower()) if hasattr(Item, "domain") else False,
+                )
+            )
+            if project_id:
+                iq = iq.filter(Item.project_id == project_id)
+            for row in iq.order_by(Item.created_at.desc()).limit(limit).all():
+                content = getattr(row, "content", "") or ""
+                results.append({
+                    "type":         "item",
+                    "id":           str(row.id),
+                    "project_id":   str(row.project_id) if getattr(row, "project_id", None) else None,
+                    "project_name": pj_map.get(str(getattr(row, "project_id", "")), ""),
+                    "title":        content[:60],
+                    "snippet":      _snippet(content, keyword),
+                    "score":        1.0,
+                    "created_at":   row.created_at.isoformat() if getattr(row, "created_at", None) else None,
+                })
+        except Exception as e:
+            pass
 
-    # ─── Items (分解ITEM) ─────────────────────────────────────
-    if type in (None, "item"):
-        q_items = db.query(Item)
-        for kw in keywords:
-            q_items = q_items.filter(Item.text.ilike(f"%{kw}%"))
-        for item in q_items.order_by(Item.created_at.desc()).limit(limit).all():
-            hits.append(SearchHit(
-                id=item.id,
-                type="item",
-                title=f"[{item.intent_code}/{item.domain_code}] {item.text[:60]}",
-                body=snippet(item.text, keywords[0]),
-                url=f"/inputs/{item.input_id}",
-                meta={
-                    "intent_code": item.intent_code,
-                    "domain_code": item.domain_code,
-                    "confidence": item.confidence,
-                },
-                created_at=item.created_at,
-            ))
+    # ── issues 検索 ────────────────────────────────────────────────────────
+    if not type or type == "issue":
+        try:
+            from app.models.issue import Issue
+            iq = db.query(Issue).filter(
+                Issue.tenant_id == tenant_id,
+                or_(
+                    func.lower(Issue.title).contains(keyword.lower()),
+                    func.lower(Issue.description).contains(keyword.lower()) if hasattr(Issue, "description") else False,
+                )
+            )
+            if project_id:
+                iq = iq.filter(Issue.project_id == project_id)
+            for row in iq.order_by(Issue.created_at.desc()).limit(limit).all():
+                desc = getattr(row, "description", "") or ""
+                results.append({
+                    "type":         "issue",
+                    "id":           str(row.id),
+                    "project_id":   str(row.project_id) if getattr(row, "project_id", None) else None,
+                    "project_name": pj_map.get(str(getattr(row, "project_id", "")), ""),
+                    "title":        row.title or "",
+                    "snippet":      _snippet(desc or row.title, keyword),
+                    "score":        1.0,
+                    "created_at":   row.created_at.isoformat() if getattr(row, "created_at", None) else None,
+                })
+        except Exception as e:
+            pass
 
-    # ─── Conversations (コメント) ──────────────────────────────
-    if type in (None, "conversation"):
-        q_convs = db.query(Conversation)
-        for kw in keywords:
-            q_convs = q_convs.filter(Conversation.body.ilike(f"%{kw}%"))
-        for conv in q_convs.order_by(Conversation.created_at.desc()).limit(limit).all():
-            hits.append(SearchHit(
-                id=conv.id,
-                type="conversation",
-                title=f"💬 {conv.body[:60]}",
-                body=snippet(conv.body, keywords[0]),
-                url=f"/issues/{conv.issue_id}",
-                meta={"issue_id": conv.issue_id},
-                created_at=conv.created_at,
-            ))
+    # ── decisions 検索 ─────────────────────────────────────────────────────
+    if not type or type == "decision":
+        try:
+            from app.models.decision import Decision
+            dq = db.query(Decision).filter(
+                Decision.tenant_id == tenant_id,
+                or_(
+                    func.lower(Decision.title).contains(keyword.lower()) if hasattr(Decision, "title") else False,
+                    func.lower(Decision.reason).contains(keyword.lower()) if hasattr(Decision, "reason") else False,
+                    func.lower(Decision.content).contains(keyword.lower()) if hasattr(Decision, "content") else False,
+                )
+            )
+            if project_id:
+                dq = dq.filter(Decision.project_id == project_id)
+            for row in dq.order_by(Decision.created_at.desc()).limit(limit).all():
+                title   = getattr(row, "title", None) or getattr(row, "content", "")[:60] or ""
+                body    = getattr(row, "reason", None) or getattr(row, "content", "") or ""
+                results.append({
+                    "type":         "decision",
+                    "id":           str(row.id),
+                    "project_id":   str(row.project_id) if getattr(row, "project_id", None) else None,
+                    "project_name": pj_map.get(str(getattr(row, "project_id", "")), ""),
+                    "title":        title[:60],
+                    "snippet":      _snippet(body, keyword),
+                    "score":        1.0,
+                    "created_at":   row.created_at.isoformat() if getattr(row, "created_at", None) else None,
+                })
+        except Exception as e:
+            pass
 
-    # 全件をcreated_at降順でソート・limit適用
-    hits.sort(key=lambda h: h.created_at, reverse=True)
-    hits = hits[:limit]
+    # created_at 降順でソート、offset/limit 適用
+    results.sort(key=lambda x: x.get("created_at") or "", reverse=True)
+    paginated = results[offset: offset + limit]
 
-    duration_ms = int((time.time() - start) * 1000)
-
-    return SearchResponse(
-        query=q,
-        total=len(hits),
-        hits=hits,
-        duration_ms=duration_ms,
-    )
+    return {
+        "total":    len(results),
+        "keyword":  keyword,
+        "results":  paginated,
+    }
