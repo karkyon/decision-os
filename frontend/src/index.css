@@ -1,10 +1,213 @@
-*, *::before, *::after { box-sizing: border-box; }
-body {
-  margin: 0; padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
-  background: #0f172a; color: #f1f5f9;
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
+
+/* ═══════════════════════════════════════════
+   ライトテーマ（デフォルト）
+═══════════════════════════════════════════ */
+:root,
+[data-theme="light"] {
+  --bg-base:          #f4f5f7;
+  --bg-surface:       #ffffff;
+  --bg-surface-alt:   #f8f9fb;
+  --bg-input:         #ffffff;
+  --bg-input-focus:   #ffffff;
+  --bg-hover:         #f0f2f8;
+  --bg-sidebar:       #1e2035;
+  --bg-header:        #ffffff;
+
+  --border:           #e4e7ef;
+  --border-input:     #d0d5e8;
+  --border-strong:    #b8bdd0;
+
+  --text-primary:     #1a1d2e;
+  --text-secondary:   #4a5070;
+  --text-muted:       #8b91a8;
+  --text-placeholder: #b0b5c8;
+
+  --accent:           #4f46e5;
+  --accent-hover:     #4338ca;
+  --accent-light:     rgba(79,70,229,0.08);
+  --accent-glow:      rgba(79,70,229,0.2);
+
+  --shadow-sm:        0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:        0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg:        0 8px 24px rgba(0,0,0,0.10);
+  --shadow-btn:       0 2px 8px rgba(79,70,229,0.25);
+
+  --status-open-bg:   #eff6ff;  --status-open-fg:   #1d4ed8;
+  --status-prog-bg:   #fffbeb;  --status-prog-fg:   #b45309;
+  --status-done-bg:   #f0fdf4;  --status-done-fg:   #15803d;
+  --status-closed-bg: #f8fafc;  --status-closed-fg: #64748b;
+
+  --table-head-bg:    #f8f9fb;
+  --tag-bg:           #eef0ff;
+  --tag-fg:           #4f46e5;
+
+  --sidebar-nav-color:       rgba(200,205,220,0.9);
+  --sidebar-nav-active-bg:   rgba(99,102,241,0.3);
+  --sidebar-nav-active-color:#ffffff;
+  --sidebar-nav-hover-bg:    rgba(255,255,255,0.08);
 }
-select option { background: #1e293b; }
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: #0f172a; }
-::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+/* ═══════════════════════════════════════════
+   ダークテーマ
+═══════════════════════════════════════════ */
+[data-theme="dark"] {
+  --bg-base:          #0f1117;
+  --bg-surface:       #1a1f2e;
+  --bg-surface-alt:   #151a27;
+  --bg-input:         #0f1117;
+  --bg-input-focus:   #13182a;
+  --bg-hover:         rgba(255,255,255,0.04);
+  --bg-sidebar:       #13171f;
+  --bg-header:        #13171f;
+
+  --border:           #2d3548;
+  --border-input:     #2d3548;
+  --border-strong:    #3d4560;
+
+  --text-primary:     #e2e8f0;
+  --text-secondary:   #94a3b8;
+  --text-muted:       #64748b;
+  --text-placeholder: #475569;
+
+  --accent:           #6366f1;
+  --accent-hover:     #818cf8;
+  --accent-light:     rgba(99,102,241,0.12);
+  --accent-glow:      rgba(99,102,241,0.3);
+
+  --shadow-sm:        none;
+  --shadow-md:        0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg:        0 8px 32px rgba(0,0,0,0.5);
+  --shadow-btn:       0 4px 12px rgba(99,102,241,0.3);
+
+  --status-open-bg:   rgba(59,130,246,0.15);  --status-open-fg:   #60a5fa;
+  --status-prog-bg:   rgba(245,158,11,0.15);  --status-prog-fg:   #fbbf24;
+  --status-done-bg:   rgba(34,197,94,0.15);   --status-done-fg:   #4ade80;
+  --status-closed-bg: rgba(100,116,139,0.15); --status-closed-fg: #94a3b8;
+
+  --table-head-bg:    #151a27;
+  --tag-bg:           rgba(99,102,241,0.15);
+  --tag-fg:           #818cf8;
+
+  --sidebar-nav-color:       rgba(180,188,210,0.85);
+  --sidebar-nav-active-bg:   rgba(99,102,241,0.35);
+  --sidebar-nav-active-color:#ffffff;
+  --sidebar-nav-hover-bg:    rgba(255,255,255,0.07);
+}
+
+/* ═══════════════════════════════════════════
+   リセット & ベース
+═══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════
+   サイドバー
+═══════════════════════════════════════════ */
+:root {
+  --sidebar-w: 220px;
+  --sidebar-collapsed-w: 58px;
+}
+
+.sidebar {
+  width: var(--sidebar-w);
+  transition: width 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+.sidebar.collapsed { width: var(--sidebar-collapsed-w); }
+.sidebar-label {
+  transition: opacity 0.18s ease, max-width 0.18s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 160px;
+}
+.sidebar.collapsed .sidebar-label {
+  opacity: 0;
+  max-width: 0;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════
+   カード
+═══════════════════════════════════════════ */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ═══════════════════════════════════════════
+   バッジ
+═══════════════════════════════════════════ */
+.badge {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 5px;
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════
+   フォームコントロール
+═══════════════════════════════════════════ */
+input, select, textarea {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--bg-input);
+  border: 1.5px solid var(--border-input);
+  border-radius: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+input::placeholder, textarea::placeholder {
+  color: var(--text-placeholder);
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+  background: var(--bg-input-focus);
+}
+select {
+  cursor: pointer;
+  appearance: none;
+}
+option {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+/* ═══════════════════════════════════════════
+   スクロールバー
+═══════════════════════════════════════════ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* ═══════════════════════════════════════════
+   テーブル
+═══════════════════════════════════════════ */
+table { border-collapse: collapse; width: 100%; }
+
+/* ═══════════════════════════════════════════
+   アニメーション
+═══════════════════════════════════════════ */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+.fade-in { animation: fadeIn 0.2s ease forwards; }
