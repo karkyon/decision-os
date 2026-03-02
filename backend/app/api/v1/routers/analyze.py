@@ -58,6 +58,7 @@ def analyze_input(
             domain_code=r["domain_code"],
             confidence=r["confidence"],
             position=i,
+            tenant_id=str(current_user.tenant_id) if current_user.tenant_id else None,
         )
         db.add(item)
         items.append(item)

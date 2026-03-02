@@ -19,3 +19,4 @@ class Item(Base):
 
     input = relationship("Input", back_populates="items")
     action = relationship("Action", back_populates="item", uselist=False)
+    tenant_id = Column(UUID(as_uuid=False), ForeignKey("tenants.id"), nullable=True, index=True)

@@ -72,6 +72,7 @@ def create_action(
         action_type=payload.action_type,
         decided_by=current_user.id,
         decision_reason=payload.decision_reason,
+        tenant_id=str(current_user.tenant_id) if current_user.tenant_id else None,
     )
     db.add(action)
     db.commit()
@@ -87,6 +88,7 @@ def create_action(
                 title=f"[自動生成] {item.text[:100]}",
                 description=item.text,
                 priority="medium",
+                tenant_id=str(current_user.tenant_id) if current_user.tenant_id else None,
             )
             db.add(issue)
             db.commit()
@@ -138,6 +140,7 @@ def convert_action_to_issue(
         title=f"[課題化] {item.text[:100]}",
         description=item.text,
         priority="medium",
+        tenant_id=str(current_user.tenant_id) if current_user.tenant_id else None,
     )
     db.add(issue)
     db.commit()

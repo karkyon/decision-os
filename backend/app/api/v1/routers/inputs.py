@@ -34,6 +34,7 @@ def create_input(
         raw_text=raw_text,
         summary=payload.summary,
         importance=payload.importance,
+        tenant_id=str(current_user.tenant_id) if current_user.tenant_id else None,
     )
     db.add(inp)
     db.commit()

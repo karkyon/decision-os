@@ -144,6 +144,7 @@ def create_issue(
         labels=body.get("labels"),
         due_date=body.get("due_date"),
         action_id=body.get("action_id"),
+        tenant_id=str(current_user.tenant_id) if current_user.tenant_id else None,
     )
     db.add(issue)
     db.commit()

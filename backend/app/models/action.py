@@ -30,3 +30,4 @@ class Action(Base):
         uselist=False,
     )
     decider = relationship("User", foreign_keys=[decided_by])
+    tenant_id = Column(UUID(as_uuid=False), ForeignKey("tenants.id"), nullable=True, index=True)
