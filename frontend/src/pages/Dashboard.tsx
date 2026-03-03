@@ -1,34 +1,11 @@
+import { useCurrentProject } from '../hooks/useCurrentProject'
 import PageHeader from '../components/PageHeader';
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Inbox, Zap, AlertCircle, TrendingUp } from 'lucide-react'
 import apiClient from '@/api/client'
 
-interface DashboardStats {
-  unprocessed_inputs?: number
-  pending_action_items?: number
-  open_issues?: number
-  total_inputs?: number
-  total_issues?: number
-}
 
-async function fetchStats(): Promise<DashboardStats> {
-  const res = await apiClient.get('/dashboard/counts').catch(() => ({ data: {} }))
-  return res.data ?? {}
-}
-
-async function fetchCounts(): Promise<DashboardStats> {
-  const res = await apiClient.get('/dashboard/counts').catch(() => ({ data: {} }))
-  return res.data ?? {}
-}
-
-async function fetchRecentIssues() {
-  const res = await apiClient.get('/issues?limit=5&skip=0')
-  const d = res.data
-  if (Array.isArray(d)) return d
-  if (Array.isArray(d?.items)) return d.items
-  return []
-}
 
 const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }> = {
   open:        { bg: 'var(--status-open-bg)',   color: 'var(--status-open-fg)',   label: 'open' },
@@ -39,10 +16,27 @@ const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }>
 }
 
 export default function Dashboard() {
-  const { data: stats1 } = useQuery({ queryKey: ['stats'], queryFn: fetchStats })
-  const { data: stats2 } = useQuery({ queryKey: ['counts'], queryFn: fetchCounts })
-  const stats = { ...stats2, ...stats1 }
-  const { data: recent = [] } = useQuery({ queryKey: ['recent-issues'], queryFn: fetchRecentIssues })
+  const { projectId } = useCurrentProject()
+  const pjParam = projectId ? `?project_id=${projectId}` : ''
+  const pjAmp   = projectId ? `&project_id=${projectId}` : ''
+
+  const { data: stats = {} } = useQuery({
+    queryKey: ['counts', projectId],
+    queryFn: async () => {
+      const res = await apiClient.get(`/dashboard/counts${pjParam}`).catch(() => ({ data: {} }))
+      return res.data ?? {}
+    },
+  })
+  const { data: recent = [] } = useQuery({
+    queryKey: ['recent-issues', projectId],
+    queryFn: async () => {
+      const res = await apiClient.get(`/issues?limit=5&skip=0${pjAmp}`)
+      const d = res.data
+      if (Array.isArray(d)) return d
+      if (Array.isArray(d?.items)) return d.items
+      return []
+    },
+  })
 
   const CARDS = [
     { label: '未処理 INPUT',    value: stats.unprocessed_inputs  ?? 0, sub: `総数 ${stats.total_inputs ?? 0}件`,  icon: Inbox,        accent: '#3b82f6' },

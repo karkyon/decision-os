@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import client from '../api/client'
-import { authStore } from '../store/auth'
 
 // ── 型定義 ────────────────────────────────────────────────────────────
 

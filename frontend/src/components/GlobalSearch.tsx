@@ -4,8 +4,17 @@
  * ヘッダーの検索バーとして使用。
  * キーワード入力 → /api/v1/search?q=xxx → 結果をドロップダウン表示
  */
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+
+function useDebounce<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState<T>(value)
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay)
+    return () => clearTimeout(t)
+  }, [value, delay])
+  return debounced
+}
 
 interface SearchResult {
   type: "input" | "item" | "issue" | "decision";
@@ -31,21 +40,6 @@ const TYPE_LABELS: Record<string, string> = {
   decision: "決定",
 };
 
-const TYPE_COLORS: Record<string, string> = {
-  input:    "bg-blue-100 text-blue-700",
-  item:     "bg-purple-100 text-purple-700",
-  issue:    "bg-orange-100 text-orange-700",
-  decision: "bg-green-100 text-green-700",
-};
-
-function useDebounce<T>(value: T, delay: number): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(t);
-  }, [value, delay]);
-  return debounced;
-}
 
 export default function GlobalSearch() {
   const [query, setQuery]       = useState("");
@@ -138,7 +132,6 @@ export default function GlobalSearch() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => results.length > 0 && setOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="テナント横断検索..."
           style={{
@@ -151,7 +144,7 @@ export default function GlobalSearch() {
             color: "var(--text-primary)",
             outline: "none",
           }}
-          onFocus={e => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.boxShadow = "0 0 0 3px var(--accent-light)"; results.length > 0 && setOpen(true); }}
+          onFocus={e => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.boxShadow = "0 0 0 3px var(--accent-light)"; if (results.length > 0) setOpen(true); }}
           onBlur={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.boxShadow = "none"; }}
         />
         {loading && (
@@ -188,7 +181,6 @@ export default function GlobalSearch() {
                 borderBottom: "1px solid var(--border)", background: i === selected ? "var(--accent-light)" : "transparent",
                 border: "none", cursor: "pointer", transition: "background 0.1s",
               }}
-              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-hover)"}
               onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = i === selected ? "var(--accent-light)" : "transparent"}
             >
               <div className="flex items-start gap-3">

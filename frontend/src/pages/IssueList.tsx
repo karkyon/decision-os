@@ -1,5 +1,6 @@
 import PageHeader from '../components/PageHeader';
 import { useState } from 'react'
+import { useCurrentProject } from '../hooks/useCurrentProject'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Plus, Search, Filter, ChevronDown, AlertCircle, Loader2 } from 'lucide-react'
@@ -35,6 +36,7 @@ const STATUSES = [
 ]
 
 export default function IssueList() {
+  const { projectId } = useCurrentProject()
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
   const [page, setPage] = useState(1)
@@ -42,9 +44,10 @@ export default function IssueList() {
   const params: Record<string, string> = {
     skip: String((page - 1) * limit), limit: String(limit),
     ...(search ? { q: search } : {}), ...(status ? { status } : {}),
+    ...(projectId ? { project_id: projectId } : {}),
   }
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['issues', params], queryFn: () => fetchIssues(params), placeholderData: p => p,
+    queryKey: ['issues', params, projectId], queryFn: () => fetchIssues(params), placeholderData: p => p,
   })
   const issues = data?.items ?? []
   const total = data?.total ?? 0

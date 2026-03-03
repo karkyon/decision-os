@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function PageHeader({ title, subtitle }: Props) {
-  const pj = useCurrentProject()
+  const { projectId, projectName } = useCurrentProject()
 
   return (
     <div style={{ marginBottom: 24 }}>
@@ -26,13 +26,13 @@ export default function PageHeader({ title, subtitle }: Props) {
         {title}
       </h1>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
-        {pj && (
+        {projectId && (
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 4,
             fontSize: 12, color: '#6366f1', fontWeight: 600,
           }}>
             <FolderOpen size={12} />
-            {pj.name}
+            {projectName}
           </span>
         )}
         {subtitle && (
@@ -40,7 +40,7 @@ export default function PageHeader({ title, subtitle }: Props) {
             {subtitle}
           </span>
         )}
-        {!pj && (
+        {!projectId && (
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
             プロジェクト未選択
           </span>

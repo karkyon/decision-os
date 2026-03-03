@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, ListChecks, PlusCircle, Users,
-  LogOut, ChevronLeft, ChevronRight, Zap, Bell, History,
+  LogOut, ChevronLeft, ChevronRight, Zap, History,
   ChevronDown, FolderOpen, Check, Search, X,
 } from 'lucide-react'
 import ThemeToggle from '@/components/ThemeToggle'
@@ -71,6 +71,8 @@ export default function Layout() {
     localStorage.setItem('current_project_name', p.name)
     setCurrentPJ(p)
     closeModal()
+    window.dispatchEvent(new CustomEvent('project-changed', { detail: { id: p.id, name: p.name } }))
+    navigate('/')
   }
 
   function logout() {

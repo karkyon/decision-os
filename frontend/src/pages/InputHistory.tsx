@@ -1,5 +1,6 @@
 import PageHeader from '../components/PageHeader';
 import { useState } from 'react'
+import { useCurrentProject } from '../hooks/useCurrentProject'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { FileText, Search, ChevronDown, Loader2, AlertCircle, Mail, Mic, Users, Bug, MoreHorizontal, ArrowRight } from 'lucide-react'
@@ -39,6 +40,7 @@ async function fetchInputs(params: Record<string, string>) {
 }
 
 export default function InputHistory() {
+  const { projectId } = useCurrentProject()
   const [search, setSearch] = useState('')
   const [sourceFilter, setSourceFilter] = useState('')
   const [page, setPage] = useState(1)
@@ -46,9 +48,10 @@ export default function InputHistory() {
   const params: Record<string, string> = {
     skip: String((page - 1) * limit), limit: String(limit),
     ...(search ? { q: search } : {}), ...(sourceFilter ? { source_type: sourceFilter } : {}),
+    ...(projectId ? { project_id: projectId } : {}),
   }
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['inputs', params], queryFn: () => fetchInputs(params), placeholderData: p => p,
+    queryKey: ['inputs', params, projectId], queryFn: () => fetchInputs(params), placeholderData: p => p,
   })
   const inputs = data?.items ?? []
   const total = data?.total ?? 0
