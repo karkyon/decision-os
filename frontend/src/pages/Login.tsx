@@ -7,6 +7,7 @@ import ThemeToggle from '@/components/ThemeToggle'
 export default function Login() {
   const [email, setEmail]       = useState('demo@example.com')
   const [password, setPassword] = useState('demo1234')
+  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("remembered_email"))
   const [error, setError]       = useState('')
   const [loading, setLoading]   = useState(false)
   const navigate = useNavigate()
@@ -17,8 +18,9 @@ export default function Login() {
       const res = await apiClient.post('/auth/login', { email, password })
       const token = res.data.access_token
       if (!token) throw new Error('no token')
-      localStorage.setItem('access_token', token)
-      navigate('/workspaces')
+      if (rememberMe) localStorage.setItem("remembered_email", email); else localStorage.removeItem("remembered_email");
+        localStorage.setItem('access_token', token)
+      navigate('/')
     } catch (e: unknown) {
       const detail = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail
       setError(typeof detail === 'string' ? detail : 'ログインに失敗しました')
@@ -95,6 +97,24 @@ export default function Login() {
             style={{ width: '100%', padding: '10px 14px' }}
             onKeyDown={e => e.key === 'Enter' && handleLogin()}
           />
+              {/* ユーザー名を記憶 */}
+              <label style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                fontSize: 13, color: 'var(--text-secondary)', cursor: 'pointer',
+                marginTop: 4,
+              }}>
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={e => setRememberMe(e.target.checked)}
+                  style={{
+                    width: 15, height: 15, cursor: 'pointer',
+                    accentColor: 'var(--accent)',
+                    border: '1.5px solid var(--border-input)',
+                  }}
+                />
+                メールアドレスを記憶する
+              </label>
         </div>
 
         {error && (

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft, Mail, Mic, Users, Bug, MoreHorizontal,
   ChevronDown, ChevronUp, ExternalLink, Loader2, AlertCircle,
@@ -144,7 +144,13 @@ function LinkedIssue({ issueId }: { issueId: string }) {
 /* ── メインコンポーネント ────────────────────────────────── */
 export default function InputDetail() {
   const { id } = useParams<{ id: string }>()
+  const queryClient = useQueryClient()
   const [textExpanded, setTextExpanded] = useState(false)
+  const [editingItemId, setEditingItemId] = useState<string | null>(null)
+  const [editText, setEditText] = useState('')
+  const [editIntent, setEditIntent] = useState('')
+  const [editDomain, setEditDomain] = useState('')
+  const [editingActionId, setEditingActionId] = useState<string | null>(null)
 
   const { data: trace, isLoading, isError } = useQuery({
     queryKey: ['input-trace', id],
@@ -213,11 +219,11 @@ export default function InputDetail() {
 
         {/* Raw text */}
         <div style={{
-          background: '#0f1117', borderRadius: 8, padding: '14px 16px',
-          border: '1px solid #1e2535', position: 'relative',
+          background: 'var(--bg-muted)', borderRadius: 8, padding: '14px 16px',
+          border: '1px solid var(--border)', position: 'relative',
         }}>
           <p style={{
-            margin: 0, fontSize: 13, color: '#cbd5e1', lineHeight: 1.8,
+            margin: 0, fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.8,
             whiteSpace: 'pre-wrap',
             maxHeight: textExpanded ? 'none' : '120px',
             overflow: textExpanded ? 'visible' : 'hidden',
@@ -261,7 +267,7 @@ export default function InputDetail() {
                     {/* Position number */}
                     <div style={{
                       width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                      background: '#2d3548',
+                      background: 'var(--bg-muted)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: 11, fontWeight: 700, color: 'var(--text-secondary, #64748b)',
                       fontFamily: 'DM Mono, monospace', marginTop: 1,
@@ -284,13 +290,58 @@ export default function InputDetail() {
                       </div>
 
                       {/* Item text */}
-                      <p style={{ margin: '0 0 8px', fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.6 }}>
-                        {item.text}
-                      </p>
+                      {editingItemId === item.id ? (
+                        <div style={{ marginBottom: 8 }}>
+                          <textarea
+                            value={editText}
+                            onChange={e => setEditText(e.target.value)}
+                            rows={2}
+                            style={{
+                              width: '100%', padding: '8px 10px', borderRadius: 6,
+                              border: '1px solid var(--border)', background: 'var(--bg-input)',
+                              color: 'var(--text-primary)', fontSize: 13, resize: 'vertical',
+                              boxSizing: 'border-box',
+                            }}
+                          />
+                          <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                            <select value={editIntent} onChange={e => setEditIntent(e.target.value)}
+                              style={{ fontSize: 12, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)' }}>
+                              {[['REQ','機能要望'],['BUG','不具合'],['IMP','改善提案'],['QST','質問'],['FBK','FBK'],['INF','情報提供'],['MIS','認識相違'],['OTH','その他']].map(([v,l]) => (
+                                <option key={v} value={v}>{v} — {l}</option>
+                              ))}
+                            </select>
+                            <select value={editDomain} onChange={e => setEditDomain(e.target.value)}
+                              style={{ fontSize: 12, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)' }}>
+                              {[['UI','画面'],['API','API'],['DB','DB'],['AUTH','認証'],['PERF','性能'],['SEC','セキュリティ'],['OPS','運用'],['SPEC','仕様']].map(([v,l]) => (
+                                <option key={v} value={v}>{v} — {l}</option>
+                              ))}
+                            </select>
+                            <button onClick={async () => {
+                              try {
+                                await apiClient.patch(`/items/${item.id}`, { text: editText, intent_code: editIntent, domain_code: editDomain })
+                                setEditingItemId(null)
+                                queryClient.invalidateQueries({ queryKey: ['input-trace', id] })
+                              } catch { alert('保存失敗') }
+                            }} style={{ padding: '4px 12px', borderRadius: 6, background: '#6366f1', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 12 }}>保存</button>
+                            <button onClick={() => setEditingItemId(null)}
+                              style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 12 }}>キャンセル</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
+                          <p style={{ margin: 0, flex: 1, fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.6 }}>
+                            {item.text}
+                          </p>
+                          <button onClick={() => { setEditingItemId(item.id); setEditText(item.text); setEditIntent(item.intent_code); setEditDomain(item.domain_code) }}
+                            style={{ flexShrink: 0, background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 12, padding: '2px 6px' }}>
+                            ✏️
+                          </button>
+                        </div>
+                      )}
 
                       {/* Action */}
                       {item.action && act && (
-                        <div style={{ borderTop: '1px solid #1e2535', paddingTop: 8, marginTop: 4 }}>
+                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 8, marginTop: 4 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                             <span style={{ fontSize: 11, color: 'var(--text-secondary, #64748b)' }}>→ ACTION:</span>
                             <span className="badge" style={{ background: act.bg, color: act.color }}>
@@ -310,10 +361,41 @@ export default function InputDetail() {
                         </div>
                       )}
 
-                      {/* Action なし */}
-                      {!item.action && (
-                        <div style={{ borderTop: '1px solid #1e2535', paddingTop: 8, marginTop: 4 }}>
-                          <span style={{ fontSize: 11, color: '#334155' }}>ACTION 未設定</span>
+                      {/* Action変更ボタン（既存ACTIONがある場合） */}
+                      {(!item.action || editingActionId === item.id) && (
+                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 8, marginTop: 4 }}>
+                          {editingActionId !== item.id ? (
+                            <button onClick={() => setEditingActionId(item.id)}
+                              style={{ fontSize: 12, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                              ＋ ACTION を設定
+                            </button>
+                          ) : (
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                              {[
+                                { value: 'CREATE_ISSUE', label: '課題化', color: '#818cf8' },
+                                { value: 'ANSWER',       label: '回答',   color: '#34d399' },
+                                { value: 'STORE',        label: '保存',   color: '#60a5fa' },
+                                { value: 'REJECT',       label: '却下',   color: '#f87171' },
+                                { value: 'HOLD',         label: '保留',   color: '#fbbf24' },
+                              ].map(opt => (
+                                <button key={opt.value} onClick={async () => {
+                                  try {
+                                    await apiClient.post('/actions', { item_id: item.id, action_type: opt.value })
+                                    setEditingActionId(null)
+                                    queryClient.invalidateQueries({ queryKey: ['input-trace', id] })
+                                  } catch { alert('保存失敗') }
+                                }} style={{
+                                  padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
+                                  border: `1px solid ${opt.color}`, background: `${opt.color}22`,
+                                  color: opt.color, cursor: 'pointer',
+                                }}>{opt.label}</button>
+                              ))}
+                              <button onClick={() => setEditingActionId(null)}
+                                style={{ fontSize: 12, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                                キャンセル
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

@@ -1,3 +1,4 @@
+import PageHeader from '../components/PageHeader';
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -40,6 +41,9 @@ export default function InputNew() {
   const [occurredAt, setOccurredAt] = useState('')   // 発生日
   const [reporterId, setReporterId] = useState('')    // 担当者（要望発信者）
   const [step, setStep] = useState<1 | 2 | 3>(1)
+  const [analyzedInputId, setAnalyzedInputId] = useState<string>('')
+  const [analyzedItems, setAnalyzedItems] = useState<any[]>([])
+  const [actionMap, setActionMap] = useState<Record<string, string>>({})
 
   const { data: users = [] } = useQuery({ queryKey: ['users'], queryFn: fetchUsers })
 
@@ -57,9 +61,10 @@ export default function InputNew() {
       const analyzed = await apiClient.post('/analyze', { input_id: inputId })
       return { inputId, items: analyzed.data }
     },
-    onSuccess: ({ inputId }) => {
+    onSuccess: ({ inputId, items }) => {
+      setAnalyzedInputId(inputId)
+      setAnalyzedItems(items?.items ?? items ?? [])
       setStep(2)
-      navigate(`/inputs/${inputId}`)
     },
   })
 
@@ -80,6 +85,7 @@ export default function InputNew() {
 
   return (
     <div>
+      <PageHeader title="要望登録" />
       {/* ステッパー */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 28 }}>
         {(['1. 原文入力', '2. 分類確認・修正', '3. ACTION決定'] as const).map((label, i) => {
@@ -191,6 +197,190 @@ export default function InputNew() {
           </p>
         )}
       </div>
+
+      {/* ── STEP 2: 分類確認・修正 ── */}
+      {step === 2 && (
+        <div style={{ maxWidth: 760, marginTop: 24 }}>
+          <div style={{
+            background: 'var(--bg-surface)', border: '1px solid var(--border)',
+            borderRadius: 14, padding: '24px 28px',
+          }}>
+            <h2 style={{ margin: '0 0 20px', fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>
+              🧩 分解結果 — {analyzedItems.length} ITEM
+            </h2>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>
+              各ITEMの Intent / Domain を確認・修正してください。
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+              {analyzedItems.map((item: any, idx: number) => (
+                <div key={item.id} style={{
+                  border: '1px solid var(--border)', borderRadius: 10,
+                  padding: '14px 18px', background: 'var(--bg-surface)',
+                }}>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <div style={{
+                      width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                      background: 'var(--bg-muted)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 11, fontWeight: 700, color: 'var(--text-muted)',
+                    }}>{idx + 1}</div>
+                    <div style={{ flex: 1 }}>
+                      <textarea
+                        value={item.text}
+                        onChange={e => {
+                          const updated = [...analyzedItems]
+                          updated[idx] = { ...updated[idx], text: e.target.value }
+                          setAnalyzedItems(updated)
+                        }}
+                        rows={2}
+                        style={{
+                          width: '100%', marginBottom: 10, padding: '8px 10px',
+                          borderRadius: 6, border: '1px solid var(--border)',
+                          background: 'var(--bg-input)', color: 'var(--text-primary)',
+                          fontSize: 13, lineHeight: 1.6, resize: 'vertical',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                        <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>Intent:</label>
+                        <select
+                          defaultValue={item.intent_code}
+                          onChange={e => {
+                            const updated = [...analyzedItems]
+                            updated[idx] = { ...updated[idx], intent_code: e.target.value }
+                            setAnalyzedItems(updated)
+                          }}
+                          style={{ fontSize: 12, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)' }}
+                        >
+                                                    <option key="REQ" value="REQ">REQ — 機能要望</option>
+                          <option key="BUG" value="BUG">BUG — 不具合報告</option>
+                          <option key="IMP" value="IMP">IMP — 改善提案</option>
+                          <option key="QST" value="QST">QST — 質問</option>
+                          <option key="FBK" value="FBK">FBK — フィードバック</option>
+                          <option key="INF" value="INF">INF — 情報提供</option>
+                          <option key="MIS" value="MIS">MIS — 認識相違</option>
+                          <option key="OTH" value="OTH">OTH — その他</option>
+                        </select>
+                        <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>Domain:</label>
+                        <select
+                          defaultValue={item.domain_code}
+                          onChange={e => {
+                            const updated = [...analyzedItems]
+                            updated[idx] = { ...updated[idx], domain_code: e.target.value }
+                            setAnalyzedItems(updated)
+                          }}
+                          style={{ fontSize: 12, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)' }}
+                        >
+                                                    <option key="UI" value="UI">UI   — 画面・インターフェース</option>
+                          <option key="API" value="API">API  — バックエンドAPI</option>
+                          <option key="DB" value="DB">DB   — データベース</option>
+                          <option key="AUTH" value="AUTH">AUTH — 認証・権限</option>
+                          <option key="PERF" value="PERF">PERF — パフォーマンス</option>
+                          <option key="SEC" value="SEC">SEC  — セキュリティ</option>
+                          <option key="OPS" value="OPS">OPS  — 運用・インフラ</option>
+                          <option key="SPEC" value="SPEC">SPEC — 仕様・設計</option>
+                        </select>
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'DM Mono, monospace' }}>
+                          信頼度 {Math.round((item.confidence ?? 0) * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setStep(1)} style={{
+                padding: '10px 20px', borderRadius: 8,
+                border: '1px solid var(--border)', background: 'transparent',
+                color: 'var(--text-muted)', cursor: 'pointer', fontSize: 13,
+              }}>← 戻る</button>
+              <button onClick={() => setStep(3)} style={{
+                padding: '10px 24px', borderRadius: 8,
+                background: '#6366f1', border: 'none',
+                color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+              }}>ACTION決定へ →</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── STEP 3: ACTION決定 ── */}
+      {step === 3 && (
+        <div style={{ maxWidth: 760, marginTop: 24 }}>
+          <div style={{
+            background: 'var(--bg-surface)', border: '1px solid var(--border)',
+            borderRadius: 14, padding: '24px 28px',
+          }}>
+            <h2 style={{ margin: '0 0 20px', fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>
+              ⚡ ACTION決定 — 各ITEMの対応を選択
+            </h2>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+              {analyzedItems.map((item: any, idx: number) => {
+                const ACTION_OPTIONS = [
+                  { value: 'CREATE_ISSUE',  label: '課題化',   color: '#818cf8' },
+                  { value: 'ANSWER',        label: '回答',     color: '#34d399' },
+                  { value: 'STORE',         label: '保存',     color: '#60a5fa' },
+                  { value: 'REJECT',        label: '却下',     color: '#f87171' },
+                  { value: 'HOLD',          label: '保留',     color: '#fbbf24' },
+                ]
+                const selected = actionMap[item.id] ?? ''
+                return (
+                  <div key={item.id} style={{
+                    border: '1px solid var(--border)', borderRadius: 10,
+                    padding: '14px 18px', background: 'var(--bg-surface)',
+                  }}>
+                    <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.6 }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)', marginRight: 8 }}>#{idx + 1}</span>
+                      {item.text}
+                    </p>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {ACTION_OPTIONS.map(opt => (
+                        <button
+                          key={opt.value}
+                          onClick={() => setActionMap(prev => ({ ...prev, [item.id]: opt.value }))}
+                          style={{
+                            padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600,
+                            border: `2px solid ${selected === opt.value ? opt.color : 'var(--border)'}`,
+                            background: selected === opt.value ? `${opt.color}22` : 'transparent',
+                            color: selected === opt.value ? opt.color : 'var(--text-muted)',
+                            cursor: 'pointer', transition: 'all 0.15s',
+                          }}
+                        >{opt.label}</button>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setStep(2)} style={{
+                padding: '10px 20px', borderRadius: 8,
+                border: '1px solid var(--border)', background: 'transparent',
+                color: 'var(--text-muted)', cursor: 'pointer', fontSize: 13,
+              }}>← 戻る</button>
+              <button onClick={async () => {
+                // ACTION を一括保存
+                await Promise.all(
+                  Object.entries(actionMap).map(([itemId, actionType]) =>
+                    apiClient.post('/actions', { item_id: itemId, action_type: actionType })
+                      .catch(() => {})
+                  )
+                )
+                navigate(`/inputs/${analyzedInputId}`)
+              }} style={{
+                padding: '10px 24px', borderRadius: 8,
+                background: '#6366f1', border: 'none',
+                color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+              }}>✅ 保存して完了</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import PageHeader from '../components/PageHeader';
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
@@ -59,9 +60,7 @@ export default function IssueList() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
-            課題一覧
-          </h1>
+          <PageHeader title="課題一覧" />
           <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>{total.toLocaleString()} 件</p>
         </div>
         <Link to="/inputs/new" style={{

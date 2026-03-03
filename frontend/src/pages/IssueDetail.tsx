@@ -28,11 +28,11 @@ interface Comment {
 // ── 定数 ──────────────────────────────────────────────────────────────
 
 const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
-  open:        { label: '未着手',   color: '#fbbf24', bg: '#422006' },
-  in_progress: { label: '進行中',   color: '#60a5fa', bg: '#1e3a5f' },
-  review:      { label: 'レビュー', color: '#a78bfa', bg: '#2e1065' },
-  done:        { label: '完了',     color: '#4ade80', bg: '#14532d' },
-  closed:      { label: 'クローズ', color: 'var(--text-muted)', bg: '#1e293b' },
+  open:        { label: '未着手',   color: '#fbbf24', bg: 'rgba(251,191,36,0.15)' },
+  in_progress: { label: '進行中',   color: '#60a5fa', bg: 'rgba(96,165,250,0.15)' },
+  review:      { label: 'レビュー', color: '#a78bfa', bg: 'rgba(167,139,250,0.15)' },
+  done:        { label: '完了',     color: '#4ade80', bg: 'rgba(74,222,128,0.15)' },
+  closed:      { label: 'クローズ', color: 'var(--text-muted)', bg: 'var(--bg-muted)' },
 }
 const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
   critical: { label: '緊急', color: '#ef4444' },
@@ -141,7 +141,7 @@ export default function IssueDetail() {
     <div style={{ padding: '40px', color: '#f87171', textAlign: 'center' }}>⚠️ {error || '課題が見つかりません'}</div>
   )
 
-  const si = STATUS_MAP[issue.status] ?? { label: issue.status, color: 'var(--text-muted)', bg: '#1e293b' }
+  const si = STATUS_MAP[issue.status] ?? { label: issue.status, color: 'var(--text-muted)', bg: 'var(--bg-muted)' }
   const pi = PRIORITY_MAP[issue.priority] ?? { label: issue.priority, color: 'var(--text-muted)' }
 
   return (
@@ -151,7 +151,7 @@ export default function IssueDetail() {
       <nav style={{
         background: 'var(--bg-card)', borderBottom: '1px solid var(--border)',
         padding: '0 24px', height: '52px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        display: 'flex', alignItems: 'center', gap: '16px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <button onClick={() => navigate('/')}
@@ -160,10 +160,6 @@ export default function IssueDetail() {
             style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '13px' }}>← 戻る</button>
           <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>/ 課題詳細</span>
         </div>
-        <button onClick={() => { authStore.logout(); navigate('/login') }}
-          style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '13px' }}>
-          ログアウト
-        </button>
       </nav>
 
       {/* ── 2カラムレイアウト ── */}
@@ -201,8 +197,8 @@ export default function IssueDetail() {
                       <button key={s} onClick={() => handleStatusChange(s)}
                         style={{
                           display: 'block', width: '100%', padding: '8px 16px',
-                          background: s === issue.status ? '#0f172a' : 'transparent',
-                          border: 'none', color: STATUS_MAP[s]?.color ?? '#e2e8f0',
+                          background: s === issue.status ? 'var(--accent-light)' : 'transparent',
+                          border: 'none', color: STATUS_MAP[s]?.color ?? 'var(--text-primary)',
                           cursor: 'pointer', textAlign: 'left', fontSize: '13px',
                         }}>
                         {STATUS_MAP[s]?.label ?? s}
@@ -251,7 +247,7 @@ export default function IssueDetail() {
 
           {/* ── コメントスレッド ── */}
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', padding: '20px' }}>
-            <div style={{ fontSize: '14px', fontWeight: '700', color: '#f1f5f9', marginBottom: '16px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '16px' }}>
               💬 コメント <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '400' }}>({comments.length}件)</span>
             </div>
 
@@ -350,8 +346,8 @@ export default function IssueDetail() {
                 disabled={submitting || !commentBody.trim()}
                 style={{
                   padding: '10px 18px', borderRadius: '8px',
-                  background: commentBody.trim() ? '#3b82f6' : '#1e293b',
-                  border: 'none', color: commentBody.trim() ? '#fff' : '#475569',
+                  background: commentBody.trim() ? '#3b82f6' : 'var(--bg-muted)',
+                  border: 'none', color: commentBody.trim() ? '#fff' : 'var(--text-muted)',
                   cursor: commentBody.trim() ? 'pointer' : 'default',
                   fontSize: '13px', fontWeight: '600', whiteSpace: 'nowrap',
                 }}>
@@ -366,9 +362,9 @@ export default function IssueDetail() {
         <div style={{
           width: '380px', flexShrink: 0,
           overflowY: 'auto', padding: '24px 20px',
-          background: '#0a1628',
+          background: 'var(--bg-surface)',
         }}>
-          <div style={{ fontSize: '14px', fontWeight: '700', color: '#f1f5f9', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             🔗 意思決定トレーサー
             <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '400' }}>原点を追跡</span>
           </div>
@@ -460,7 +456,7 @@ function TraceNode({ icon, label, color, title, body, meta }: {
       <div style={{ fontSize: '10px', color, fontWeight: '700', marginBottom: '6px', letterSpacing: '0.05em' }}>
         {icon} {label}
       </div>
-      <div style={{ fontSize: '13px', color: '#f1f5f9', fontWeight: '500', lineHeight: 1.5 }}>{title}</div>
+      <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '500', lineHeight: 1.5 }}>{title}</div>
       {body && <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.5 }}>{body}</div>}
       {meta && <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>{meta}</div>}
     </div>

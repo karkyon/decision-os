@@ -1,3 +1,4 @@
+import PageHeader from '../components/PageHeader';
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
@@ -58,9 +59,7 @@ export default function InputHistory() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
-            要望履歴
-          </h1>
+          <PageHeader title="要望履歴" />
           <p style={{ marginTop: 4, fontSize: 13, color: 'var(--text-muted)' }}>
             登録済みの原文・解析履歴 — {total.toLocaleString()} 件
           </p>

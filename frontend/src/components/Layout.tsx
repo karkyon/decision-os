@@ -1,4 +1,5 @@
 import GlobalSearch from './GlobalSearch';
+import NotificationBell from './NotificationBell';
 import { useState, useEffect, useRef } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import {
@@ -102,10 +103,34 @@ export default function Layout() {
           }}>
             <Zap size={15} color="#fff" />
           </div>
-          <span className="sidebar-label" style={{ fontWeight: 800, fontSize: 14, color: '#fff', letterSpacing: '-0.03em' }}>
+          <span className="sidebar-label" style={{ fontWeight: 800, fontSize: 14, color: 'var(--sidebar-logo-color, #fff)', letterSpacing: '-0.03em' }}>
             decision-os
           </span>
         </div>
+
+        {/* ── Current PJ Badge ── */}
+        {currentPJ && (
+          <div style={{
+            margin: '0 10px 4px',
+            padding: '4px 10px',
+            borderRadius: 6,
+            background: 'rgba(99,102,241,0.18)',
+            border: '1px solid rgba(99,102,241,0.35)',
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            <div style={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: '#6366f1', flexShrink: 0,
+            }} />
+            <span style={{
+              fontSize: 10, fontWeight: 600, color: '#a5b4fc',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              textTransform: 'uppercase', letterSpacing: '0.05em',
+            }}>
+              {currentPJ.name}
+            </span>
+          </div>
+        )}
 
         {/* ── Project Switcher ── */}
         <div style={{ padding: '0 8px 10px' }}>
@@ -115,18 +140,18 @@ export default function Layout() {
             style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: 8,
               padding: '8px 10px', borderRadius: 9,
-              background: 'rgba(255,255,255,0.07)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.25)',
               cursor: 'pointer', textAlign: 'left',
               transition: 'background 0.15s',
             }}
             onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--sidebar-nav-hover-bg)')}
           >
             <FolderOpen size={14} color="#a5b4fc" style={{ flexShrink: 0 }} />
             <span style={{
-              flex: 1, fontSize: 12, fontWeight: 600,
-              color: currentPJ ? '#e0e4f7' : '#6b7280',
+              flex: 1, fontSize: 13, fontWeight: 700,
+              color: currentPJ ? '#fff' : '#9ca3af',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
               {currentPJ ? currentPJ.name : 'プロジェクトを選択'}
@@ -135,7 +160,7 @@ export default function Layout() {
           </button>
         </div>
 
-        <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '0 12px 6px' }} />
+        <div style={{ height: 1, background: 'var(--sidebar-nav-hover-bg)', margin: '0 12px 6px' }} />
 
         {/* ── Nav ── */}
         <nav style={{ flex: 1, padding: '4px 8px', overflowY: 'auto' }}>
@@ -145,8 +170,8 @@ export default function Layout() {
               style={({ isActive }) => ({
                 display: 'flex', alignItems: 'center', gap: 10,
                 padding: '8px 10px', borderRadius: 8, marginBottom: 2,
-                color: isActive ? '#fff' : 'rgba(180,188,210,0.85)',
-                background: isActive ? 'rgba(99,102,241,0.35)' : 'transparent',
+                color: isActive ? 'var(--sidebar-nav-active-color, #fff)' : 'var(--sidebar-nav-color)',
+                background: isActive ? 'var(--sidebar-nav-active-bg)' : 'transparent',
                 textDecoration: 'none', fontSize: 13.5,
                 fontWeight: isActive ? 600 : 400, transition: 'all 0.15s',
               })}
@@ -157,7 +182,7 @@ export default function Layout() {
           ))}
         </nav>
 
-        <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '0 12px 6px' }} />
+        <div style={{ height: 1, background: 'var(--sidebar-nav-hover-bg)', margin: '0 12px 6px' }} />
 
         {/* ── Bottom ── */}
         <div style={{ padding: '6px 8px 12px', display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -166,7 +191,7 @@ export default function Layout() {
             display: 'flex', alignItems: 'center', gap: 10,
             padding: '8px 10px', borderRadius: 8, width: '100%',
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'rgba(180,188,210,0.6)', fontSize: 13.5,
+            color: 'var(--sidebar-nav-color)', fontSize: 13.5,
           }}>
             <LogOut size={17} style={{ flexShrink: 0 }} />
             <span className="sidebar-label">ログアウト</span>
@@ -175,7 +200,7 @@ export default function Layout() {
             display: 'flex', alignItems: 'center', gap: 10,
             padding: '8px 10px', borderRadius: 8, width: '100%',
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'rgba(180,188,210,0.4)', fontSize: 12,
+            color: 'var(--sidebar-nav-color)', fontSize: 12,
           }}>
             {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
             <span className="sidebar-label">折りたたむ</span>
@@ -196,7 +221,7 @@ export default function Layout() {
           background: 'var(--bg-main)', position: 'sticky', top: 0, zIndex: 40,
         }}>
           <GlobalSearch />
-          <Bell size={18} style={{ color: 'var(--text-muted)', cursor: 'pointer', marginLeft: 16 }} />
+          <NotificationBell />
           <div style={{
             marginLeft: 16, width: 32, height: 32, borderRadius: '50%',
             background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
@@ -254,7 +279,10 @@ export default function Layout() {
                   position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
                   color: 'var(--text-muted)',
                 }} />
-                
+                <input
+                  ref={searchRef}
+                  value={query}
+                  onChange={e => onQuery(e.target.value)}
                   placeholder="プロジェクトを検索..."
                   style={{
                     width: '100%', padding: '8px 12px 8px 32px',

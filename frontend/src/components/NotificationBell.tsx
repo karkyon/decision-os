@@ -66,10 +66,10 @@ export default function NotificationBell() {
           fontSize: "20px",
           padding: "4px 8px",
           borderRadius: "8px",
-          color: connected ? "#e2e8f0" : "#475569",
+          color: "var(--text-muted)",
           transition: "background 0.15s",
         }}
-        onMouseEnter={e => (e.currentTarget.style.background = "#1e293b")}
+        onMouseEnter={e => (e.currentTarget.style.background = "var(--bg-hover)")}
         onMouseLeave={e => (e.currentTarget.style.background = "none")}
       >
         {connected ? "🔔" : "🔕"}
@@ -92,7 +92,7 @@ export default function NotificationBell() {
         <div style={{
           position: "absolute", top: "calc(100% + 8px)", right: 0,
           width: "340px", maxHeight: "480px",
-          background: "#0f172a", border: "1px solid #334155",
+          background: "var(--bg-surface)", border: "1px solid var(--border)",
           borderRadius: "12px", boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
           zIndex: 9999, overflow: "hidden",
           display: "flex", flexDirection: "column",
@@ -100,18 +100,18 @@ export default function NotificationBell() {
           {/* ヘッダー */}
           <div style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
-            padding: "12px 16px", borderBottom: "1px solid #1e293b",
+            padding: "12px 16px", borderBottom: "1px solid var(--border)",
           }}>
-            <span style={{ fontWeight: "600", color: "#e2e8f0", fontSize: "14px" }}>
+            <span style={{ fontWeight: "600", color: "var(--text-primary)", fontSize: "14px" }}>
               🔔 通知
-              <span style={{ color: "#64748b", fontSize: "12px", marginLeft: "6px" }}>
+              <span style={{ color: "var(--text-muted)", fontSize: "12px", marginLeft: "6px" }}>
                 {connected ? "● 接続中" : "○ 未接続"}
               </span>
             </span>
             <div style={{ display: "flex", gap: "8px" }}>
               {notifications.length > 0 && (
                 <button onClick={clear} style={{
-                  background: "none", border: "none", color: "#64748b",
+                  background: "none", border: "none", color: "var(--text-muted)",
                   cursor: "pointer", fontSize: "12px",
                 }}>すべて削除</button>
               )}
@@ -135,7 +135,7 @@ export default function NotificationBell() {
                   onClick={() => handleNotifClick(n)}
                   style={{
                     padding: "12px 16px",
-                    borderBottom: "1px solid #1e293b",
+                    borderBottom: "1px solid var(--border)",
                     cursor: n.url ? "pointer" : "default",
                     background: n.read ? "transparent" : "#1e2d3d",
                     transition: "background 0.1s",
@@ -154,13 +154,13 @@ export default function NotificationBell() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
                       fontWeight: n.read ? "400" : "600",
-                      color: "#e2e8f0", fontSize: "13px",
+                      color: "var(--text-primary)", fontSize: "13px",
                       overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                     }}>
                       {n.title}
                     </div>
                     <div style={{
-                      color: "#94a3b8", fontSize: "12px", marginTop: "2px",
+                      color: "var(--text-muted)", fontSize: "12px", marginTop: "2px",
                       overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                     }}>
                       {n.body}

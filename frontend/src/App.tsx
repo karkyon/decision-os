@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import NotificationToast from './components/NotificationToast';
 import SearchPage from './pages/SearchPage';
 import Layout from '@/components/Layout'
 import Dashboard from '@/pages/Dashboard'
@@ -22,33 +23,37 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/invite" element={<InviteAccept />} />
-      <Route path="/workspaces" element={
-        <PrivateRoute><WorkspaceSelect /></PrivateRoute>
-      } />
-      <Route path="/totp-setup" element={
-        <PrivateRoute><TOTPSetup /></PrivateRoute>
-      } />
-      <Route path="/totp-login" element={<TOTPLogin />} />
-      <Route
-        path="/"
-        element={
-          <PrivateRoute>
-            <Layout />
-          </PrivateRoute>
-        }
-      >
-        <Route index element={<Dashboard />} />
-        <Route path="projects" element={<ProjectList />} />
-        <Route path="issues" element={<IssueList />} />
-        <Route path="issues/:id" element={<IssueDetail />} />
-        <Route path="inputs/new" element={<InputNew />} />
-        <Route path="inputs" element={<InputHistory />} />
-        <Route path="inputs/:id" element={<InputDetail />} />
-        <Route path="users" element={<UserManagement />} />
-      </Route>
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/invite" element={<InviteAccept />} />
+        <Route path="/workspaces" element={
+          <PrivateRoute><WorkspaceSelect /></PrivateRoute>
+        } />
+        <Route path="/totp-setup" element={
+          <PrivateRoute><TOTPSetup /></PrivateRoute>
+        } />
+        <Route path="/totp-login" element={<TOTPLogin />} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <Layout />
+            </PrivateRoute>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="projects" element={<ProjectList />} />
+          <Route path="issues" element={<IssueList />} />
+          <Route path="issues/:id" element={<IssueDetail />} />
+          <Route path="inputs/new" element={<InputNew />} />
+          <Route path="inputs" element={<InputHistory />} />
+          <Route path="inputs/:id" element={<InputDetail />} />
+          <Route path="users" element={<UserManagement />} />
+        </Route>
+      </Routes>
+      <NotificationToast />
+    </>
   )
 }

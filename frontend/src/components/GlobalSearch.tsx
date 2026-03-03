@@ -126,12 +126,13 @@ export default function GlobalSearch() {
   };
 
   return (
-    <div className="relative w-full max-w-md" style={{ zIndex: 50 }}>
+    <div style={{ position:"relative", width:"100%", maxWidth:"480px", zIndex:50 }}>
       {/* 検索バー */}
-      <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-          🔍
-        </span>
+      <div style={{ position:"relative" }}>
+        <span style={{
+          position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)",
+          color: "var(--text-muted)", pointerEvents: "none", fontSize: "14px", lineHeight: 1,
+        }}>🔍</span>
         <input
           ref={inputRef}
           type="text"
@@ -140,10 +141,18 @@ export default function GlobalSearch() {
           onFocus={() => results.length > 0 && setOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="テナント横断検索..."
-          className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600
-                     bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-                     focus:outline-none focus:ring-2 focus:ring-blue-500"
-          style={{ minWidth: "240px" }}
+          style={{
+            width: "100%", minWidth: "240px",
+            paddingLeft: "36px", paddingRight: "16px",
+            paddingTop: "7px", paddingBottom: "7px",
+            fontSize: "13px", borderRadius: "8px",
+            border: "1px solid var(--border)",
+            background: "var(--bg-input)",
+            color: "var(--text-primary)",
+            outline: "none",
+          }}
+          onFocus={e => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.boxShadow = "0 0 0 3px var(--accent-light)"; results.length > 0 && setOpen(true); }}
+          onBlur={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.boxShadow = "none"; }}
         />
         {loading && (
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">
@@ -156,13 +165,15 @@ export default function GlobalSearch() {
       {open && results.length > 0 && (
         <div
           ref={dropRef}
-          className="absolute top-full left-0 mt-1 w-full bg-white dark:bg-gray-800
-                     border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl
-                     overflow-hidden"
-          style={{ minWidth: "360px", maxHeight: "480px", overflowY: "auto" }}
+          style={{
+            position: "absolute", top: "100%", left: 0, marginTop: "4px",
+            width: "100%", minWidth: "360px", maxHeight: "480px", overflowY: "auto",
+            background: "var(--bg-surface)", border: "1px solid var(--border)",
+            borderRadius: "12px", boxShadow: "var(--shadow-lg)", zIndex: 9999,
+          }}
         >
           {/* ヘッダー */}
-          <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          <div style={{ padding: "8px 16px", fontSize: "12px", color: "var(--text-muted)", borderBottom: "1px solid var(--border)", background: "var(--bg-muted)" }}>
             「{query}」の検索結果: {total} 件
           </div>
 
@@ -172,30 +183,38 @@ export default function GlobalSearch() {
               key={`${r.type}-${r.id}`}
               onClick={() => navigateTo(r)}
               onMouseEnter={() => setSelected(i)}
-              className={`w-full text-left px-4 py-3 border-b border-gray-100 dark:border-gray-700
-                          last:border-0 transition-colors
-                          ${i === selected ? "bg-blue-50 dark:bg-blue-900/30" : "hover:bg-gray-50 dark:hover:bg-gray-700"}`}
+              style={{
+                width: "100%", textAlign: "left", padding: "10px 16px",
+                borderBottom: "1px solid var(--border)", background: i === selected ? "var(--accent-light)" : "transparent",
+                border: "none", cursor: "pointer", transition: "background 0.1s",
+              }}
+              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-hover)"}
+              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = i === selected ? "var(--accent-light)" : "transparent"}
             >
               <div className="flex items-start gap-3">
                 {/* タイプバッジ */}
-                <span className={`flex-shrink-0 mt-0.5 text-xs font-medium px-1.5 py-0.5 rounded
-                                  ${TYPE_COLORS[r.type] || "bg-gray-100 text-gray-600"}`}>
+                <span style={{
+                  flexShrink: 0, fontSize: "11px", fontWeight: 600,
+                  padding: "2px 6px", borderRadius: "4px",
+                  background: r.type === "input" ? "rgba(59,130,246,0.12)" : r.type === "item" ? "rgba(139,92,246,0.12)" : r.type === "issue" ? "rgba(249,115,22,0.12)" : "rgba(34,197,94,0.12)",
+                  color: r.type === "input" ? "#3b82f6" : r.type === "item" ? "#8b5cf6" : r.type === "issue" ? "#f97316" : "#22c55e",
+                }}>
                   {TYPE_LABELS[r.type] || r.type}
                 </span>
                 <div className="flex-1 min-w-0">
                   {/* タイトル */}
-                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  <p style={{ fontSize:"13px", fontWeight:600, color:"var(--text-primary)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", margin:0 }}>
                     {r.title || "(タイトルなし)"}
                   </p>
                   {/* スニペット */}
                   {r.snippet && r.snippet !== r.title && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">
+                    <p style={{ fontSize:"12px", color:"var(--text-muted)", marginTop:"3px", overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" as any, margin:"3px 0 0" }}>
                       {r.snippet}
                     </p>
                   )}
                   {/* プロジェクト名 */}
                   {r.project_name && (
-                    <p className="text-xs text-blue-500 mt-1">
+                    <p style={{ fontSize:"11px", color:"var(--accent)", marginTop:"4px", margin:"4px 0 0" }}>
                       📁 {r.project_name}
                     </p>
                   )}
@@ -206,7 +225,7 @@ export default function GlobalSearch() {
 
           {/* もっと見る */}
           {total > results.length && (
-            <div className="px-4 py-2 text-xs text-center text-gray-400">
+            <div style={{ padding:"8px 16px", fontSize:"12px", textAlign:"center", color:"var(--text-muted)" }}>
               他 {total - results.length} 件
             </div>
           )}
@@ -217,9 +236,13 @@ export default function GlobalSearch() {
       {open && !loading && results.length === 0 && debouncedQuery && (
         <div
           ref={dropRef}
-          className="absolute top-full left-0 mt-1 w-full bg-white dark:bg-gray-800
-                     border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl
-                     px-4 py-6 text-center text-sm text-gray-400"
+          style={{
+            position:"absolute", top:"100%", left:0, marginTop:"4px",
+            width:"100%", minWidth:"300px",
+            background:"var(--bg-surface)", border:"1px solid var(--border)",
+            borderRadius:"12px", boxShadow:"var(--shadow-lg)", zIndex:9999,
+            padding:"24px 16px", textAlign:"center", fontSize:"13px", color:"var(--text-muted)",
+          }}
         >
           「{debouncedQuery}」に一致する結果が見つかりません
         </div>

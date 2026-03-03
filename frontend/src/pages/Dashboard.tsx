@@ -1,3 +1,4 @@
+import PageHeader from '../components/PageHeader';
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Inbox, Zap, AlertCircle, TrendingUp } from 'lucide-react'
@@ -53,9 +54,7 @@ export default function Dashboard() {
     <div>
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
-          ダッシュボード
-        </h1>
+        <PageHeader title="ダッシュボード" />
         <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>
           {new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
         </p>
