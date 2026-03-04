@@ -233,7 +233,7 @@ export default function IssueDetail() {
                 ['種別', issue.issue_type ?? '—'],
                 ['担当者', issue.assignee_id ?? '未割当'],
                 ['期限', issue.due_date ? new Date(issue.due_date).toLocaleDateString('ja-JP') : '未設定'],
-                ['更新日', new Date(issue.updated_at).toLocaleDateString('ja-JP')],
+                ['更新日', issue.updated_at ? new Date(issue.updated_at).toLocaleDateString('ja-JP') : '—'],
               ].map(([label, val]) => (
                 <div key={label}>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' }}>{label}</div>

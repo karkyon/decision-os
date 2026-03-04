@@ -293,6 +293,26 @@ export default function InputNew() {
                     border: '1px solid #cbd5e1', background: 'transparent', cursor: 'pointer' }}>⊕ マージ</button>
               )}
             </div>
+            {/* フローティングマージバー */}
+            {mergeMode && analyzedItems.filter((it: any) => it.mergeSelected).length >= 2 && (
+              <div style={{
+                position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+                background: '#1e293b', border: '1px solid #6366f1', borderRadius: 12,
+                padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 16,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.4)', zIndex: 1000,
+              }}>
+                <span style={{ color: '#e2e8f0', fontSize: 13, fontWeight: 600 }}>
+                  {analyzedItems.filter((it: any) => it.mergeSelected).length}件選択中
+                </span>
+                <button onClick={executeMerge} style={{
+                  padding: '8px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                  background: '#6366f1', border: 'none', color: '#fff', cursor: 'pointer',
+                }}>⊕ マージ実行</button>
+                <button onClick={() => { setMergeMode(false); setAnalyzedItems((prev: any[]) => prev.map(it => ({ ...it, mergeSelected: false }))) }}
+                  style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, border: '1px solid #475569', background: 'transparent', color: '#94a3b8', cursor: 'pointer' }}
+                >キャンセル</button>
+              </div>
+            )}
             <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>
               各ITEMの Intent / Domain を確認・修正してください。
             </p>
