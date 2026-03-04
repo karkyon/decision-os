@@ -35,3 +35,24 @@ def list_projects(db: Session = Depends(get_db), current_user: User = Depends(ge
     if current_user.tenant_id:
         q = q.filter(Project.tenant_id == str(current_user.tenant_id))
     return q.all()
+from fastapi import HTTPException
+from datetime import datetime, timezone
+
+@router.delete("/{project_id}", status_code=204)
+def delete_project(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """プロジェクトをアーカイブ（ソフトデリート）する"""
+    p = db.query(Project).filter(
+        Project.id == project_id,
+        Project.status == "active"
+    ).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="project not found")
+
+    p.status = "archived"
+    p.archived_at = datetime.now(timezone.utc)
+    db.commit()
+    return

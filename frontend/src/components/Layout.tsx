@@ -75,6 +75,28 @@ export default function Layout() {
     navigate('/')
   }
 
+  async function deleteProject(p: Project, e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!window.confirm(`「${p.name}」を削除しますか？\n\nこの操作は取り消せません。`)) return
+    try {
+      await apiClient.delete(`/projects/${p.id}`)
+      const next = projects.filter(x => x.id !== p.id)
+      setProjects(next)
+      setFiltered(next.filter(x =>
+        x.name.toLowerCase().includes(query.toLowerCase())
+      ))
+      // 削除したのが現在選択中PJなら選択解除
+      if (currentPJ?.id === p.id) {
+        setCurrentPJ(null)
+        localStorage.removeItem('current_project_id')
+        localStorage.removeItem('current_project_name')
+        window.dispatchEvent(new CustomEvent('project-changed', { detail: { id: '', name: '' } }))
+      }
+    } catch {
+      alert('削除に失敗しました')
+    }
+  }
+
   function logout() {
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
