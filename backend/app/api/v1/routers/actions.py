@@ -189,6 +189,11 @@ def delete_action(
     action = db.query(Action).filter(Action.id == action_id).first()
     if not action:
         raise HTTPException(status_code=404, detail="Action not found")
+    # issuesテーブルのaction_id参照をNULLクリア（FK違反回避）
+    from app.models.issue import Issue as IssueModel
+    db.query(IssueModel).filter(IssueModel.action_id == action_id).update(
+        {"action_id": None}, synchronize_session=False
+    )
     db.delete(action)
     db.commit()
     return

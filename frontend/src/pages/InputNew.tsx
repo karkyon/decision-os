@@ -347,6 +347,7 @@ export default function InputNew() {
                           const newText = e.target.value
                           if (newText !== item.text) {
                             await apiClient.patch(`/items/${item.id}`, { text: newText }).catch(() => {})
+                            setAnalyzedItems(prev => prev.map((it, i) => i === idx ? { ...it, text: newText } : it))
                           }
                         }}
                         rows={2}
