@@ -177,3 +177,18 @@ async def list_actions(
             "created_at": str(a.created_at) if getattr(a, "created_at", None) else None,
         })
     return result
+
+
+@router.delete("/{action_id}", status_code=204)
+def delete_action(
+    action_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """ACTIONを削除する（ACTION変更時の既存削除用）"""
+    action = db.query(Action).filter(Action.id == action_id).first()
+    if not action:
+        raise HTTPException(status_code=404, detail="Action not found")
+    db.delete(action)
+    db.commit()
+    return

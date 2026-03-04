@@ -65,16 +65,19 @@ def delete_item(
     current_user: User = Depends(get_current_user),
 ):
     """ITEMを削除する（分解結果の不要な行を削除）"""
+    from ....models.action import Action
+    from ....models.issue import Issue
     item = db.query(Item).filter(Item.id == item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
-
-    # 紐づくActionも削除（CASCADE前提でなければ手動で）
-    from ....models.action import Action
+    # 紐づくActionとIssueのaction_idをNULLにしてから削除
     action = db.query(Action).filter(Action.item_id == item_id).first()
     if action:
+        # ActionにリンクしたIssueのaction_idを解除
+        db.query(Issue).filter(Issue.action_id == str(action.id)).update({"action_id": None})
+        db.commit()
         db.delete(action)
-
+        db.commit()
     db.delete(item)
     db.commit()
     return None

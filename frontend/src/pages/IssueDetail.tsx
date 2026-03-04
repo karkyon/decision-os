@@ -11,6 +11,20 @@ interface Issue {
   created_at: string; updated_at: string
 }
 
+function parseLabels(labels: any): string[] {
+  if (!labels) return []
+  if (Array.isArray(labels)) return labels
+  if (typeof labels === 'string') {
+    const s = labels.trim()
+    if (!s) return []
+    if (s.startsWith('[')) { try { return JSON.parse(s) } catch {} }
+    return s.split(',').map((l: string) => l.trim()).filter(Boolean)
+  }
+  return []
+}
+
+
+
 interface TraceData {
   issue: { id: string; title: string; status: string; priority: string }
   action?: { id: string; action_type: string; decision_reason?: string; created_at: string }

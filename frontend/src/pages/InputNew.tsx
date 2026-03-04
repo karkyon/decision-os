@@ -208,13 +208,37 @@ export default function InputNew() {
             <h2 style={{ margin: '0 0 20px', fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>
               🧩 分解結果 — {analyzedItems.length} ITEM
             </h2>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {mergeMode ? (<>
+                <span style={{ fontSize: 12, alignSelf: 'center', color: '#64748b' }}>
+                  {analyzedItems.filter((it: any) => it.mergeSelected).length}件選択（Shift/Ctrl+クリック）
+                </span>
+                <button onClick={executeMerge}
+                  disabled={analyzedItems.filter((it: any) => it.mergeSelected).length < 2}
+                  style={{ padding: '5px 12px', borderRadius: 6, fontSize: 12, fontWeight: 600,
+                    background: analyzedItems.filter((it: any) => it.mergeSelected).length >= 2 ? '#6366f1' : '#cbd5e1',
+                    color: '#fff', border: 'none', cursor: 'pointer' }}>マージ実行</button>
+                <button onClick={() => { setMergeMode(false); setAnalyzedItems((prev: any[]) => prev.map(it => ({ ...it, mergeSelected: false }))) }}
+                  style={{ padding: '5px 12px', borderRadius: 6, fontSize: 12,
+                    border: '1px solid #cbd5e1', background: 'transparent', cursor: 'pointer' }}>キャンセル</button>
+              </>) : (
+                <button onClick={() => setMergeMode(true)}
+                  style={{ padding: '5px 12px', borderRadius: 6, fontSize: 12,
+                    border: '1px solid #cbd5e1', background: 'transparent', cursor: 'pointer' }}>⊕ マージ</button>
+              )}
+            </div>
             <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>
               各ITEMの Intent / Domain を確認・修正してください。
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
               {analyzedItems.map((item: any, idx: number) => (
-                <div key={item.id} style={{
+                <div
+                  key={item.id}
+                  onClick={(e) => toggleMergeSelect(item.id, idx, e)}
+                  style={{
+                    cursor: mergeMode ? 'pointer' : 'default',
+                    outline: item.mergeSelected ? '2px solid #6366f1' : 'none',
                   border: '1px solid var(--border)', borderRadius: 10,
                   padding: '14px 18px', background: 'var(--bg-surface)',
                 }}>
