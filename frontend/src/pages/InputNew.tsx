@@ -43,7 +43,7 @@ export default function InputNew() {
   const [occurredAt, setOccurredAt] = useState('')   // 発生日
   const [reporterId, setReporterId] = useState('')    // 担当者（要望発信者）
   const [step, setStep] = useState<1 | 2 | 3>(1)
-  const [analyzedInputId, setAnalyzedInputId] = useState<string>('')
+  const [_analyzedInputId, setAnalyzedInputId] = useState<string>('')
   const [analyzedItems, setAnalyzedItems] = useState<any[]>([])
   const [actionMap, setActionMap] = useState<Record<string, string>>({})
   const [mergeMode, setMergeMode] = useState(false)
