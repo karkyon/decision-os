@@ -151,6 +151,74 @@ export default function InputDetail() {
   const [editIntent, setEditIntent] = useState('')
   const [editDomain, setEditDomain] = useState('')
   const [editingActionId, setEditingActionId] = useState<string | null>(null)
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
+  const [mergeMode, setMergeMode] = useState(false)
+  const [lastClickedIdx, setLastClickedIdx] = useState<number | null>(null)
+
+  // ── ITEM削除 ──
+  const deleteItem = async (itemId: string) => {
+    if (!window.confirm('このITEMを削除しますか？')) return
+    try {
+      await apiClient.delete(`/items/${itemId}`)
+      setEditingItemId(null)
+      queryClient.invalidateQueries({ queryKey: ['input-trace', id] })
+    } catch { alert('削除失敗') }
+  }
+
+  // ── ACTION変更（PATCH or DELETE + POST） ──
+  const changeAction = async (itemId: string, actionType: string, existingActionId?: string) => {
+    try {
+      if (existingActionId) {
+        // 既存ACTIONを削除してから再作成
+        await apiClient.delete(`/actions/${existingActionId}`)
+      }
+      await apiClient.post('/actions', { item_id: itemId, action_type: actionType })
+      setEditingActionId(null)
+      queryClient.invalidateQueries({ queryKey: ['input-trace', id] })
+    } catch { alert('ACTION更新失敗') }
+  }
+
+  // ── マージ ──
+  const mergeItems = async () => {
+    if (selectedItems.size < 2) { alert('2件以上選択してください'); return }
+    const allItems = trace!.items
+    const sel = allItems.filter(it => selectedItems.has(it.id))
+      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+    const base = sel[0]
+    const mergedText = sel.map(it => it.text).join('\n')
+    try {
+      // ベースITEMのテキストを更新
+      await apiClient.patch(`/items/${base.id}`, { text: mergedText })
+      // 残りを削除
+      for (const it of sel.slice(1)) {
+        await apiClient.delete(`/items/${it.id}`)
+      }
+      setSelectedItems(new Set())
+      setMergeMode(false)
+      setLastClickedIdx(null)
+      queryClient.invalidateQueries({ queryKey: ['input-trace', id] })
+    } catch { alert('マージ失敗') }
+  }
+
+  // ── マージモードのクリック ──
+  const handleItemClick = (item: any, idx: number, e: React.MouseEvent) => {
+    if (!mergeMode) return
+    const newSel = new Set(selectedItems)
+    if (e.shiftKey && lastClickedIdx !== null) {
+      const allItems = trace!.items
+      const from = Math.min(lastClickedIdx, idx)
+      const to   = Math.max(lastClickedIdx, idx)
+      for (let i = from; i <= to; i++) newSel.add(allItems[i].id)
+    } else if (e.ctrlKey || e.metaKey) {
+      if (newSel.has(item.id)) newSel.delete(item.id)
+      else newSel.add(item.id)
+    } else {
+      if (newSel.has(item.id)) newSel.delete(item.id)
+      else newSel.add(item.id)
+    }
+    setSelectedItems(newSel)
+    setLastClickedIdx(idx)
+  }
 
   const { data: trace, isLoading, isError } = useQuery({
     queryKey: ['input-trace', id],
@@ -247,9 +315,39 @@ export default function InputDetail() {
 
       {/* ── ITEM → ACTION → ISSUE 連鎖 ── */}
       <div style={{ marginBottom: 12 }}>
-        <h2 style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 700, color: 'var(--text-secondary, #64748b)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-          分解結果 — {items.length} ITEM
-        </h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <h2 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-secondary, #64748b)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            分解結果 — {items.length} ITEM
+          </h2>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {mergeMode ? (
+              <>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)', alignSelf: 'center' }}>
+                  {selectedItems.size}件選択（Shift/Ctrl+クリックで複数選択）
+                </span>
+                <button onClick={mergeItems} disabled={selectedItems.size < 2}
+                  style={{ padding: '5px 12px', borderRadius: 6, fontSize: 12, fontWeight: 600,
+                    background: selectedItems.size >= 2 ? '#6366f1' : 'var(--bg-muted)',
+                    color: selectedItems.size >= 2 ? '#fff' : 'var(--text-muted)',
+                    border: 'none', cursor: selectedItems.size >= 2 ? 'pointer' : 'default' }}>
+                  マージ実行
+                </button>
+                <button onClick={() => { setMergeMode(false); setSelectedItems(new Set()); setLastClickedIdx(null) }}
+                  style={{ padding: '5px 12px', borderRadius: 6, fontSize: 12, border: '1px solid var(--border)',
+                    background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                  キャンセル
+                </button>
+              </>
+            ) : (
+              <button onClick={() => setMergeMode(true)}
+                style={{ padding: '5px 12px', borderRadius: 6, fontSize: 12, fontWeight: 600,
+                  border: '1px solid var(--border)', background: 'transparent',
+                  color: 'var(--text-secondary, #64748b)', cursor: 'pointer' }}>
+                ⊕ マージ
+              </button>
+            )}
+          </div>
+        </div>
 
         {items.length === 0 ? (
           <div className="card" style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary, #64748b)', fontSize: 13 }}>
@@ -258,11 +356,23 @@ export default function InputDetail() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {items.map((item, idx) => {
+              const isMergeSelected = selectedItems.has(item.id)
               const intent = INTENT_LABEL[item.intent_code] ?? { label: item.intent_code, color: 'var(--text-muted)' }
               const act = item.action ? (ACTION_LABEL[item.action.action_type] ?? null) : null
 
               return (
-                <div key={item.id} className="card" style={{ padding: '14px 18px' }}>
+                <div
+                  key={item.id}
+                  className="card"
+                  onClick={(e) => handleItemClick(item, idx, e)}
+                  style={{
+                    padding: '14px 18px',
+                    cursor: mergeMode ? 'pointer' : 'default',
+                    outline: isMergeSelected ? '2px solid #6366f1' : 'none',
+                    background: isMergeSelected ? 'rgba(99,102,241,0.07)' : undefined,
+                    transition: 'outline 0.1s, background 0.1s',
+                  }}
+                >
                   <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                     {/* Position number */}
                     <div style={{
@@ -325,6 +435,8 @@ export default function InputDetail() {
                             }} style={{ padding: '4px 12px', borderRadius: 6, background: '#6366f1', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 12 }}>保存</button>
                             <button onClick={() => setEditingItemId(null)}
                               style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 12 }}>キャンセル</button>
+                            <button onClick={() => deleteItem(item.id)}
+                              style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #ef4444', background: 'transparent', color: '#ef4444', cursor: 'pointer', fontSize: 12, marginLeft: 'auto' }}>🗑 削除</button>
                           </div>
                         </div>
                       ) : (
@@ -362,6 +474,14 @@ export default function InputDetail() {
                       )}
 
                       {/* Action変更ボタン（既存ACTIONがある場合） */}
+                      {item.action && editingActionId !== item.id && (
+                        <div style={{ marginTop: 4 }}>
+                          <button onClick={() => setEditingActionId(item.id)}
+                            style={{ fontSize: 11, color: 'var(--text-muted)', background: 'none', border: '1px solid var(--border)', borderRadius: 4, cursor: 'pointer', padding: '2px 8px' }}>
+                            ✏ 変更
+                          </button>
+                        </div>
+                      )}
                       {(!item.action || editingActionId === item.id) && (
                         <div style={{ borderTop: '1px solid var(--border)', paddingTop: 8, marginTop: 4 }}>
                           {editingActionId !== item.id ? (
@@ -378,13 +498,7 @@ export default function InputDetail() {
                                 { value: 'REJECT',       label: '却下',   color: '#f87171' },
                                 { value: 'HOLD',         label: '保留',   color: '#fbbf24' },
                               ].map(opt => (
-                                <button key={opt.value} onClick={async () => {
-                                  try {
-                                    await apiClient.post('/actions', { item_id: item.id, action_type: opt.value })
-                                    setEditingActionId(null)
-                                    queryClient.invalidateQueries({ queryKey: ['input-trace', id] })
-                                  } catch { alert('保存失敗') }
-                                }} style={{
+                                <button key={opt.value} onClick={() => changeAction(item.id, opt.value, item.action?.id)} style={{
                                   padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
                                   border: `1px solid ${opt.color}`, background: `${opt.color}22`,
                                   color: opt.color, cursor: 'pointer',
