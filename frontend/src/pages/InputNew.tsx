@@ -345,10 +345,7 @@ export default function InputNew() {
                         }}
                         onBlur={async e => {
                           const newText = e.target.value
-                          if (newText !== item.text) {
-                            await apiClient.patch(`/items/${item.id}`, { text: newText }).catch(() => {})
-                            setAnalyzedItems(prev => prev.map((it, i) => i === idx ? { ...it, text: newText } : it))
-                          }
+                          await apiClient.patch(`/items/${item.id}`, { text: newText }).catch(() => {})
                         }}
                         rows={2}
                         style={{
