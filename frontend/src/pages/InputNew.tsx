@@ -1,6 +1,7 @@
 import PageHeader from '../components/PageHeader';
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useCurrentProject } from '../hooks/useCurrentProject'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import apiClient from '@/api/client'
@@ -33,8 +34,9 @@ async function fetchUsers(): Promise<User[]> {
 export default function InputNew() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  // プロジェクトIDはURLパラメータから取得（プロジェクトページから遷移時）
-  const projectId = searchParams.get('project_id') ?? ''
+  const { projectId: currentProjectId } = useCurrentProject()
+  // URLパラメータ優先、なければ現在選択中のプロジェクト
+  const projectId = searchParams.get('project_id') ?? currentProjectId
 
   const [sourceType, setSourceType] = useState('email')
   const [text, setText] = useState('')
