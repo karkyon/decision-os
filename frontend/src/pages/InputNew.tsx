@@ -52,8 +52,16 @@ export default function InputNew() {
   const { data: users = [] } = useQuery({ queryKey: ['users'], queryFn: fetchUsers })
 
   // ─── ITEM削除 ──────────────────────────────────────────────
-  const deleteItem = (itemId: string) => {
+  const deleteItem = async (itemId: string) => {
     if (!window.confirm('このITEMを削除しますか？')) return
+    try {
+      await apiClient.delete(`/items/${itemId}`)
+    } catch (e: any) {
+      if (e?.response?.status !== 404) {
+        alert('削除失敗: ' + (e?.response?.data?.detail ?? e?.message))
+        return
+      }
+    }
     setAnalyzedItems((prev: any[]) => prev.filter((it: any) => it.id !== itemId))
   }
 
@@ -74,13 +82,24 @@ export default function InputNew() {
     setLastMergeIdx(idx)
   }
 
-  const executeMerge = () => {
+  const executeMerge = async () => {
     const selected = analyzedItems.filter((it: any) => it.mergeSelected)
     if (selected.length < 2) { alert('2件以上選択してください'); return }
     const sorted = [...selected].sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
     const base = sorted[0]
     const mergedText = sorted.map((it: any) => it.text).join('\n')
     const selectedIds = new Set(sorted.map((it: any) => it.id))
+    try {
+      // DBのベースITEMのtextを更新
+      await apiClient.patch(`/items/${base.id}`, { text: mergedText })
+      // 残りのITEMをDB削除
+      for (const it of sorted.slice(1)) {
+        await apiClient.delete(`/items/${it.id}`).catch(() => {})
+      }
+    } catch (e: any) {
+      alert('マージ失敗: ' + (e?.response?.data?.detail ?? e?.message))
+      return
+    }
     setAnalyzedItems((prev: any[]) => prev
       .filter((it: any) => it.id === base.id || !selectedIds.has(it.id))
       .map((it: any) => it.id === base.id ? { ...it, text: mergedText, mergeSelected: false } : it)
@@ -108,6 +127,10 @@ export default function InputNew() {
       setAnalyzedInputId(inputId)
       setAnalyzedItems(items?.items ?? items ?? [])
       setStep(2)
+    },
+    onError: (err: any) => {
+      console.error('mutation error:', err)
+      alert('エラー: ' + (err?.response?.data?.detail ?? err?.message ?? String(err)))
     },
   })
 
@@ -299,6 +322,12 @@ export default function InputNew() {
                           const updated = [...analyzedItems]
                           updated[idx] = { ...updated[idx], text: e.target.value }
                           setAnalyzedItems(updated)
+                        }}
+                        onBlur={async e => {
+                          const newText = e.target.value
+                          if (newText !== item.text) {
+                            await apiClient.patch(`/items/${item.id}`, { text: newText }).catch(() => {})
+                          }
                         }}
                         rows={2}
                         style={{
