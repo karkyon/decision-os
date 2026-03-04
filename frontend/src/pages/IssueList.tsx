@@ -10,9 +10,7 @@ import apiClient from '@/api/client'
 interface Issue {
   id: string; title: string; status: string
   priority?: number; issue_type?: string; created_at: string
-  labels?: { name: string; color?: string }
-
-[]
+  labels?: any[]
 }
 
 async function fetchIssues(params: Record<string, string>) {
@@ -37,20 +35,6 @@ const STATUSES = [
   { value: '', label: 'すべて' }, { value: 'open', label: 'Open' },
   { value: 'in_progress', label: 'In Progress' }, { value: 'done', label: 'Done' }, { value: 'closed', label: 'Closed' },
 ]
-
-
-function parseLabels(labels: any): string[] {
-  if (!labels) return []
-  if (Array.isArray(labels)) return labels
-  if (typeof labels === 'string') {
-    const s = labels.trim()
-    if (!s) return []
-    if (s.startsWith('[')) { try { return JSON.parse(s) } catch {} }
-    return s.split(',').map((l: string) => l.trim()).filter(Boolean)
-  }
-  return []
-}
-
 export default function IssueList() {
   const { projectId } = useCurrentProject()
   const [search, setSearch] = useState('')
@@ -155,9 +139,9 @@ export default function IssueList() {
                         onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
                         onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-primary)')}
                       >{issue.title}</Link>
-                      {issue.labels && parseLabels(issue.labels).length > 0 && (
+                      {issue.labels && (issue.labels?.length ?? 0) > 0 && (
                         <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-                          {parseLabels(issue.labels).map(lb => (
+                          {issue.labels?.map(lb => (
                             <span key={lb.name} className="badge" style={{
                               background: lb.color ? `${lb.color}22` : 'var(--accent-light)',
                               color: lb.color ?? 'var(--accent)',

@@ -44,8 +44,49 @@ export default function InputNew() {
   const [analyzedInputId, setAnalyzedInputId] = useState<string>('')
   const [analyzedItems, setAnalyzedItems] = useState<any[]>([])
   const [actionMap, setActionMap] = useState<Record<string, string>>({})
+  const [mergeMode, setMergeMode] = useState(false)
+  const [lastMergeIdx, setLastMergeIdx] = useState<number | null>(null)
 
   const { data: users = [] } = useQuery({ queryKey: ['users'], queryFn: fetchUsers })
+
+  // ─── ITEM削除 ──────────────────────────────────────────────
+  const deleteItem = (itemId: string) => {
+    if (!window.confirm('このITEMを削除しますか？')) return
+    setAnalyzedItems((prev: any[]) => prev.filter((it: any) => it.id !== itemId))
+  }
+
+  // ─── マージ ─────────────────────────────────────────────────
+  const toggleMergeSelect = (_itemId: string, idx: number, e: React.MouseEvent) => {
+    if (!mergeMode) return
+    setAnalyzedItems((prev: any[]) => {
+      const newItems = [...prev]
+      if (e.shiftKey && lastMergeIdx !== null) {
+        const from = Math.min(lastMergeIdx, idx)
+        const to   = Math.max(lastMergeIdx, idx)
+        for (let i = from; i <= to; i++) newItems[i] = { ...newItems[i], mergeSelected: true }
+      } else {
+        newItems[idx] = { ...newItems[idx], mergeSelected: !newItems[idx].mergeSelected }
+      }
+      return newItems
+    })
+    setLastMergeIdx(idx)
+  }
+
+  const executeMerge = () => {
+    const selected = analyzedItems.filter((it: any) => it.mergeSelected)
+    if (selected.length < 2) { alert('2件以上選択してください'); return }
+    const sorted = [...selected].sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
+    const base = sorted[0]
+    const mergedText = sorted.map((it: any) => it.text).join('\n')
+    const selectedIds = new Set(sorted.map((it: any) => it.id))
+    setAnalyzedItems((prev: any[]) => prev
+      .filter((it: any) => it.id === base.id || !selectedIds.has(it.id))
+      .map((it: any) => it.id === base.id ? { ...it, text: mergedText, mergeSelected: false } : it)
+      .map((it: any, i: number) => ({ ...it, position: i + 1 }))
+    )
+    setMergeMode(false)
+    setLastMergeIdx(null)
+  }
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -308,6 +349,19 @@ export default function InputNew() {
                         <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'DM Mono, monospace' }}>
                           信頼度 {Math.round((item.confidence ?? 0) * 100)}%
                         </span>
+                      </div>
+                      {/* 削除ボタン */}
+                      <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); deleteItem(item.id) }}
+                          style={{
+                            padding: '3px 10px', borderRadius: 5, fontSize: 11,
+                            border: '1px solid #ef4444', background: 'transparent',
+                            color: '#ef4444', cursor: 'pointer', opacity: 0.7,
+                          }}
+                          onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                          onMouseLeave={e => (e.currentTarget.style.opacity = '0.7')}
+                        >🗑 削除</button>
                       </div>
                     </div>
                   </div>
