@@ -17,6 +17,7 @@ async function fetchIssues(params: Record<string, string>) {
   const res = await apiClient.get(`/issues?${new URLSearchParams(params)}`)
   const d = res.data
   if (Array.isArray(d)) return { items: d as Issue[], total: d.length }
+  if (Array.isArray(d?.issues)) return { items: d.issues as Issue[], total: (d.total ?? d.issues.length) as number }
   if (Array.isArray(d?.items)) return { items: d.items as Issue[], total: (d.total ?? d.items.length) as number }
   const arr = Object.values(d as Record<string, unknown>).find((v): v is Issue[] => Array.isArray(v))
   return { items: arr ?? [], total: arr?.length ?? 0 }
