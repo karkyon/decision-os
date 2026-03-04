@@ -374,6 +374,18 @@ export default function Layout() {
                         </div>
                       )}
                     </div>
+                    <span
+                      onClick={(e) => deleteProject(p, e)}
+                      title="削除"
+                      style={{
+                        marginLeft: 'auto', padding: '3px 7px', borderRadius: 5,
+                        color: '#ef4444', fontSize: 13, cursor: 'pointer',
+                        opacity: 0.45, lineHeight: 1, flexShrink: 0,
+                        background: 'transparent', border: 'none',
+                      }}
+                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
+                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '0.45'}
+                    >🗑</span>
                     {isCurrent && <Check size={14} color="#6366f1" style={{ flexShrink: 0 }} />}
                   </button>
                 )
