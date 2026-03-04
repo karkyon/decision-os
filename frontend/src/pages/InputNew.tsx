@@ -442,12 +442,17 @@ export default function InputNew() {
                 color: 'var(--text-muted)', cursor: 'pointer', fontSize: 13,
               }}>← 戻る</button>
               <button onClick={async () => {
-                // ACTION を一括保存
+                // ACTION を一括保存 → CREATE_ISSUEは convert も呼ぶ
                 await Promise.all(
-                  Object.entries(actionMap).map(([itemId, actionType]) =>
-                    apiClient.post('/actions', { item_id: itemId, action_type: actionType })
-                      .catch(() => {})
-                  )
+                  Object.entries(actionMap).map(async ([itemId, actionType]) => {
+                    try {
+                      const res = await apiClient.post('/actions', { item_id: itemId, action_type: actionType })
+                      const actionId = res.data?.id ?? res.data?.action_id
+                      if (actionType === 'CREATE_ISSUE' && actionId) {
+                        await apiClient.post(`/actions/${actionId}/convert`).catch(() => {})
+                      }
+                    } catch {}
+                  })
                 )
                 navigate(`/inputs/${analyzedInputId}`)
               }} style={{
