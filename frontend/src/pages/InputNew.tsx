@@ -456,7 +456,7 @@ export default function InputNew() {
                     } catch {}
                   })
                 )
-                navigate(`/inputs/${analyzedInputId}`)
+                navigate('/issues')
               }} style={{
                 padding: '10px 24px', borderRadius: 8,
                 background: '#6366f1', border: 'none',

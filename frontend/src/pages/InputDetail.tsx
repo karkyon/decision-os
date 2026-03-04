@@ -93,7 +93,10 @@ async function fetchInputTrace(id: string): Promise<TraceResult> {
   const items: ItemRecord[] = await Promise.all(
     rawItems.map(async (item: ItemRecord) => {
       try {
-        const actRes = await apiClient.get(`/actions?item_id=${item.id}`)
+        const actRes = await Promise.race([
+          apiClient.get(`/actions?item_id=${item.id}`),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+        ]) as any
         const actData = actRes.data
         const actions = Array.isArray(actData) ? actData
           : Array.isArray(actData?.items) ? actData.items : []
